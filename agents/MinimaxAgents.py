@@ -1,4 +1,4 @@
-import chess
+import chess as ch
 from match import match
 from move_choice import *
 

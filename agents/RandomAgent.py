@@ -1,4 +1,4 @@
-import chess
+import chess as ch
 class RandomAgent(object):
     def __init__(self):
         self.elo = 400
