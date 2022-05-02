@@ -1,0 +1,47 @@
+name: deploy_training
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  tags: [test]
+
+env:
+  PROJECT_NAME: pychessai
+  ENVIRONMENT: dev
+  REPO_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+    - uses: terraform-linters/setup-tflint@v1
+      name: Setup TFLint
+      with:
+        tflint_version: v0.28.0
+    - uses: pre-commit/action@v2.0.2
+
+  bootstrap:
+    runs-on: ubuntu-20.04
+    needs: [pre-commit]
+    defaults:
+      run:
+        working-directory: terraform/bootstrap-start
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v1
+        with: 
+          terraform_version: 1.1.0
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{AZURE_CREDENTIALS}}
+      - name: Deploy Compute Instance
+        run: echo 
