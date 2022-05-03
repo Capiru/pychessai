@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from match import match, get_fen_as_tensor
-from move_choice import *
+from move_choice import minimax_with_pruning
 
 class SimpleRLAgent(object):
     def __init__(self,depth = 3,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False):

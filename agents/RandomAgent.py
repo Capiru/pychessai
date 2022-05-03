@@ -1,4 +1,6 @@
 import chess as ch
+from move_choice import random_choice
+
 class RandomAgent(object):
     def __init__(self):
         self.elo = 400
