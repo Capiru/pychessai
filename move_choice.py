@@ -100,7 +100,7 @@ def get_board_evaluation(board):
             except:
                 print(fen)
     return count_white-count_black
-test = True
-if __name__ == "__main:__" or test:
+
+if __name__ == "__main:__":
     board = ch.Board()
     print(minimax_with_pruning(board,2,True))
