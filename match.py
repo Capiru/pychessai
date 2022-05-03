@@ -58,10 +58,14 @@ def expected_result(elo_a, elo_b):
     return expect_a
 
 def get_fen_as_tensor(fen):
+    pytorch = True
     num_pieces = 6
     num_players = 2
     board_size = 8
-    input_tensor_size = (board_size,board_size,num_pieces*num_players)
+    if pytorch:
+        input_tensor_size = (num_pieces*num_players,board_size,board_size)
+    else:
+        input_tensor_size = (board_size,board_size,num_pieces*num_players)
     tensor = torch.zeros(input_tensor_size)
     dic_encoder = {"p":0,"P":1,"r":2,"R":3,"n":4,"N":5,"b":6,"B":7,"q":8,"Q":9,"k":10,"K":11}
     fen_position = fen.split(" ")[0]
@@ -75,7 +79,10 @@ def get_fen_as_tensor(fen):
         elif str.isnumeric(char):
             file_ += int(char)
         else:
-            tensor[row,file_,dic_encoder[char]] = 1
+            if pytorch:
+                tensor[dic_encoder[char],row,file_] = 1
+            else:
+                tensor[row,file_,dic_encoder[char]] = 1
             file_ += 1
     return tensor
 
