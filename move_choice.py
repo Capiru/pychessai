@@ -101,6 +101,64 @@ def get_board_evaluation(board):
                 print(fen)
     return count_white-count_black
 
+def get_players_piece_maps(board):
+  pieces = board.piece_map()
+  white_map = dict()
+  black_map = dict()
+  for k,v in pieces.items():
+    if str(v).islower():
+      black_map[k] = v
+    else:
+      white_map[k] = v
+  return white_map,black_map
+
+def get_sorted_move_list(board,agent = None):
+    if agent is None:
+        checkmate_list = []
+        check_list = []
+        capture_list = []
+        attack_list = []
+        pin_list = []
+        castling_list = []
+        other_list = []
+        move_list = list(board.legal_moves)
+        for move in move_list:
+            if board.is_checkmate():
+                board.push(move)
+                checkmate_list.append(move)
+            elif board.is_check():
+                board.push(move)
+                check_list.append(move)
+            elif board.is_capture(move):
+                board.push(move)
+                capture_list.append(move)
+            elif board.is_castling(move):
+                board.push(move)
+                castling_list.append(move)
+            else:
+                board.push(move)
+                other_list.append(move)
+                attacks = board.attacks(move.to_square)
+                if attacks:
+                    w_map,b_map = get_players_piece_maps(board)
+                    if not bool(board.turn):
+                        #white to play
+                        if attacks.intersection(b_map):
+                            attack_list.append(move)
+                            other_list.pop()
+                    else:
+                        #black to play
+                        if attacks.intersection(w_map):
+                            attack_list.append(move)
+                            other_list.pop()
+            board.pop()
+        return_list = [*checkmate_list,*check_list,*capture_list,*attack_list,*castling_list,*other_list]
+        return return_list
+
+
+
+
+
 if __name__ == "__main:__":
     board = ch.Board()
     print(minimax_with_pruning(board,2,True))
