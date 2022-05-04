@@ -45,7 +45,7 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
             #white win
             outcomes[0] += 1
         if progress_bar:
-            progress.set_description(str(outcomes)+"  1:"+agent_one.elo+"   2:"+agent_two.elo)
+            progress.set_description(str(outcomes)+"  1:"+str(agent_one.elo)+"   2:"+str(agent_two.elo))
 
     return outcomes
 
