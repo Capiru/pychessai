@@ -76,6 +76,45 @@ def minimax_with_pruning(board,depth,is_player,alpha=-np.inf,beta=np.inf,agent =
                 break
         return min_eval, best_move
 
+def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta=np.inf,value_agent = None,policy_model = None):
+    if depth==0 or board.is_game_over():
+        #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
+        if agent is None:
+            return get_board_evaluation(board),None
+        else:
+            return agent.get_board_evaluation(board),None
+    sorted_list = get_sorted_move_list(board,agent = policy_model)
+    if is_player:
+        max_eval = -np.inf
+        best_move = None
+        for move in sorted_list:
+            #print(max_eval,best_move,move,board.fen())
+            board.push(move)
+            eval,a = minimax_with_pruning(board,depth-1,False,alpha,beta,value_agent)
+            if eval>= max_eval:
+                max_eval = eval
+                best_move = move
+            board.pop()
+            alpha = max(alpha,eval)
+            if beta <= alpha:
+                break
+        return max_eval, best_move
+    else:
+        min_eval = np.inf
+        best_move = None
+        for move in sorted_list:
+            #print(min_eval,best_move,move,board.fen())
+            board.push(move)
+            eval,a = minimax_with_pruning(board,depth-1,True,alpha,beta,value_agent)
+            if eval<= min_eval:
+                min_eval = eval
+                best_move = move
+            board.pop()
+            beta = min(beta,eval)
+            if beta <= alpha:
+                break
+        return min_eval, best_move
+
 def get_board_evaluation(board):
     if board.is_game_over():
         winner = board.outcome().winner
