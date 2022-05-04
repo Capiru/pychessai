@@ -1,6 +1,7 @@
 import chess as ch
 import numpy as np
 import torch
+from tqdm import tqdm
 
 def match(agent_one,agent_two,is_update_elo = True):
     try:
@@ -25,9 +26,14 @@ def match(agent_one,agent_two,is_update_elo = True):
         print(e)
         raise AssertionError
 
-def experiments(agent_one,agent_two,n=100,is_update_elo=True):
+def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True):
     outcomes = [0, 0, 0]
-    for i in range(n):
+    if progress_bar:
+        progress = tqdm(enumerate(train_loader), desc="", total=len(train_loader))
+    else:
+        progress = enumerate(train_loader)
+
+    for i in progress:
         outcome = match(agent_one,agent_two)
         if outcome is None:
             #draw
@@ -38,6 +44,9 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True):
         else:
             #white win
             outcomes[0] += 1
+        if progress_bar:
+            progress.set_description(str(outcomes)+"  1:"+agent_one.elo+"   2:"+agent_two.elo)
+
     return outcomes
 
 def update_elo_agents(white,black,outcome):
@@ -103,11 +112,15 @@ def get_fen_as_tensor(fen):
     return tensor
 
 def get_match_as_fen_tensor(board):
+    pytorch = True
     match_len = len(board.move_stack)
     num_pieces = 6
     num_players = 2
     board_size = 8
-    input_tensor_size = (match_len,board_size,board_size,num_pieces*num_players)
+    if pytorch:
+      input_tensor_size = (match_len,num_pieces*num_players,board_size,board_size)
+    else:
+      input_tensor_size = (match_len,board_size,board_size,num_pieces*num_players)
     tensor = torch.zeros(input_tensor_size)
     for i in range(match_len):
         fen=board.board_fen()
