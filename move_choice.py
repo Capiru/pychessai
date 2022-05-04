@@ -90,7 +90,7 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
         for move in sorted_list:
             #print(max_eval,best_move,move,board.fen())
             board.push(move)
-            eval,a = minimax_with_pruning(board,depth-1,False,alpha,beta,value_agent)
+            eval,a = minimax_with_pruning_and_policyeval(board,depth-1,False,alpha,beta,value_agent,policy_model)
             if eval>= max_eval:
                 max_eval = eval
                 best_move = move
@@ -105,7 +105,7 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
         for move in sorted_list:
             #print(min_eval,best_move,move,board.fen())
             board.push(move)
-            eval,a = minimax_with_pruning(board,depth-1,True,alpha,beta,value_agent)
+            eval,a = minimax_with_pruning_and_policyeval(board,depth-1,True,alpha,beta,value_agent,policy_model)
             if eval<= min_eval:
                 min_eval = eval
                 best_move = move
