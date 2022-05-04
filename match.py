@@ -20,8 +20,9 @@ def match(agent_one,agent_two,is_update_elo = True):
         if is_update_elo:
             update_elo_agents(agent_one,agent_two,game.outcome().winner)
         return game.outcome().winner
-    except:
+    except Exception() as e:
         print(game.fen())
+        print(e)
         raise AssertionError
 
 def update_elo_agents(white,black,outcome):
