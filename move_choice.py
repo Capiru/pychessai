@@ -79,7 +79,7 @@ def minimax_with_pruning(board,depth,is_player,alpha=-np.inf,beta=np.inf,agent =
 def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta=np.inf,value_agent = None,policy_model = None):
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
-        if agent is None:
+        if value_agent is None:
             return get_board_evaluation(board),None
         else:
             return agent.get_board_evaluation(board),None
@@ -193,8 +193,6 @@ def get_sorted_move_list(board,agent = None):
             board.pop()
         return_list = [*checkmate_list,*check_list,*capture_list,*attack_list,*castling_list,*other_list]
         return return_list
-
-
 
 
 
