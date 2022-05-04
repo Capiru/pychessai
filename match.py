@@ -29,7 +29,7 @@ def match(agent_one,agent_two,is_update_elo = True):
 def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True):
     outcomes = [0, 0, 0]
     if progress_bar:
-        progress = tqdm(enumerate(range(n)), desc="", total=len(train_loader))
+        progress = tqdm(enumerate(range(n)), desc="", total=n)
     else:
         progress = enumerate(range(n))
 
