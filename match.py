@@ -99,5 +99,6 @@ def get_match_as_fen_tensor(board):
         board.pop()
     return tensor
 
-fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
-print(get_fen_as_tensor(fen_test))
+if __name__ == "__main:__":
+    fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+    print(get_fen_as_tensor(fen_test))
