@@ -25,6 +25,21 @@ def match(agent_one,agent_two,is_update_elo = True):
         print(e)
         raise AssertionError
 
+def experiments(agent_one,agent_two,n=100,is_update_elo=True):
+    outcomes = [0, 0, 0]
+    for i in range(n):
+        outcome = match(agent_one,agent_two)
+        if outcome is None:
+            #draw
+            outcomes[1] += 1
+        elif outcome == False:
+            #black win
+            outcomes[2] += 1
+        else:
+            #white win
+            outcomes[0] += 1
+    return outcomes
+
 def update_elo_agents(white,black,outcome):
     if outcome is None:
         if white.elo > black.elo:
