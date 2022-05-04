@@ -34,18 +34,29 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
         progress = enumerate(range(n))
 
     for i in progress:
-        outcome = match(agent_one,agent_two)
+        if i % 2 == 0:
+            outcome = match(agent_one,agent_two)
+        else:
+            outcome = match(agent_two,agent_one)
         if outcome is None:
             #draw
             outcomes[1] += 1
         elif outcome == False:
-            #black win
-            outcomes[2] += 1
+            if i % 2 == 0:
+                #black win
+                outcomes[2] += 1
+            else:
+                #white win
+                outcomes[0] += 1
         else:
-            #white win
-            outcomes[0] += 1
+            if i % 2 == 0:
+                #white win
+                outcomes[0] += 1
+            else:
+                #black win
+                outcomes[2] += 1
         if progress_bar:
-            progress.set_description(str(outcomes)+"  1:"+str(agent_one.elo)+"   2:"+str(agent_two.elo))
+            progress.set_description(str(outcomes)+"  1:"+str(float(agent_one.elo,2))+"   2:"+str(float(agent_two.elo,2)))
 
     return outcomes
 
