@@ -17,8 +17,8 @@ class SimpleRLAgent(object):
         self.value_model = ValueModel()
         self.training = training
 
-    def choose_move(self,fen):
-        self.board = ch.Board(fen)
+    def choose_move(self,board):
+        self.board = board
         score,move = minimax_with_pruning(self.board,self.depth,self.is_white,agent=self.value_model)
         return [move]
     

@@ -12,12 +12,12 @@ def match(agent_one,agent_two,is_update_elo = True):
         agent_two.positions = 0
 
         while game.is_game_over() is False:
-            move = agent_one.choose_move(game.fen())
+            move = agent_one.choose_move(game)
             game.push(move[0])
             
             if game.is_game_over() is True:
                 break
-            move = agent_two.choose_move(game.fen())
+            move = agent_two.choose_move(game)
             game.push(move[0])
 
         if is_update_elo:
