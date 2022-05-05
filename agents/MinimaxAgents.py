@@ -11,8 +11,7 @@ class MinimaxPruningAgent(object):
         self.positions = 0
     def choose_move(self,board):
         self.board = board
-        positions = 0
-        score,move = minimax_with_pruning(self.board,self.depth,self.is_white)
+        score,move,positions = minimax_with_pruning(self.board,self.depth,self.is_white)
         self.positions += positions
         return [move]
 
@@ -25,8 +24,7 @@ class MinimaxPruningSimplePolicyAgent(object):
         self.positions = 0
     def choose_move(self,board):
         self.board = board
-        positions = 0
-        score,move = minimax_with_pruning_and_policyeval(self.board,self.depth,self.is_white)
+        score,move,positions = minimax_with_pruning_and_policyeval(self.board,self.depth,self.is_white)
         self.positions += positions
         return [move]
 
@@ -39,7 +37,6 @@ class MinimaxAgent(object):
         self.positions = 0
     def choose_move(self,board):
         self.board = board
-        positions = 0
-        score,move = minimax(self.board,self.depth,self.is_white)
+        score,move,positions = minimax(self.board,self.depth,self.is_white)
         self.positions += positions
         return [move]
