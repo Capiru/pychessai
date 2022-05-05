@@ -45,12 +45,12 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
         if i % 2 == 0:
             if save_match_tensor:
                 outcome,tensor = match(agent_one,agent_two)
-                torch.save(tensor,time.time()+".pt")
+                torch.save(tensor,str(time.time())+".pt")
             else:
                 outcome = match(agent_one,agent_two,save_tensor=False)
         else:
             if save_match_tensor:
-                torch.save(tensor,time.time()+".pt")
+                torch.save(tensor,str(time.time())+".pt")
                 outcome,tensor = match(agent_two,agent_one)
             else:
                 outcome =  match(agent_two,agent_one,save_tensor=False)
