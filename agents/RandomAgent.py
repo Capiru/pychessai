@@ -4,6 +4,7 @@ from move_choice import random_choice
 class RandomAgent(object):
     def __init__(self):
         self.elo = 400
+        self.positions = 0
     def choose_move(self,fen):
         board = ch.Board(fen)
         legal_moves = list(board.legal_moves)

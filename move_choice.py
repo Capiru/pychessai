@@ -7,6 +7,12 @@ def random_choice(possible_moves , probability_map , exploration_size):
     return np.random.choice(possible_moves,size=exploration_size,p=probability_map)
 
 def minimax(board,depth,is_player,agent = None):
+    ### depth 1 - 21 positions - time 0.003461
+    ### depth 2 - 621 positions - time 0.091520 
+    ### depth 3 - 13781 positions - time 1.991260
+    ### depth 4 - 419166 positions - time 61.41497
+    global positions
+    positions += 1
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if agent is None:
@@ -39,6 +45,14 @@ def minimax(board,depth,is_player,agent = None):
         return min_eval, best_move
 
 def minimax_with_pruning(board,depth,is_player,alpha=-np.inf,beta=np.inf,agent = None):
+    ### depth 1 - 21 positions - time 0.003673
+    ### depth 2 - 70 positions - time 0.010080 
+    ### depth 3 - 545 positions - time 0.0784910
+    ### depth 4 - 1964 positions - time 0.278105
+    ### depth 5 - 14877 positions - time 2.12180
+    ### depth 6 - 82579 positions - time 11.84326
+    global positions
+    positions += 1
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if agent is None:
@@ -49,7 +63,6 @@ def minimax_with_pruning(board,depth,is_player,alpha=-np.inf,beta=np.inf,agent =
         max_eval = -np.inf
         best_move = None
         for move in list(board.legal_moves):
-            #print(max_eval,best_move,move,board.fen())
             board.push(move)
             eval,a = minimax_with_pruning(board,depth-1,False,alpha,beta,agent)
             if eval>= max_eval:
@@ -64,7 +77,6 @@ def minimax_with_pruning(board,depth,is_player,alpha=-np.inf,beta=np.inf,agent =
         min_eval = np.inf
         best_move = None
         for move in list(board.legal_moves):
-            #print(min_eval,best_move,move,board.fen())
             board.push(move)
             eval,a = minimax_with_pruning(board,depth-1,True,alpha,beta,agent)
             if eval<= min_eval:
@@ -77,6 +89,14 @@ def minimax_with_pruning(board,depth,is_player,alpha=-np.inf,beta=np.inf,agent =
         return min_eval, best_move
 
 def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta=np.inf,value_agent = None,policy_model = None):
+    ### depth 1 - 21 positions - time 0.004315
+    ### depth 2 - 76 positions - time 0.033392
+    ### depth 3 - 687 positions - time 0.172937
+    ### depth 4 - 4007 positions - time 1.278452
+    ### depth 5 - 30086 positions - time 7.623218
+    ### depth 6 - 82579 positions - time 60.89466
+    global positions
+    positions += 1
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if value_agent is None:
@@ -88,7 +108,6 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
         max_eval = -np.inf
         best_move = None
         for move in sorted_list:
-            #print(max_eval,best_move,move,board.fen())
             board.push(move)
             eval,a = minimax_with_pruning_and_policyeval(board,depth-1,False,alpha,beta,value_agent,policy_model)
             if eval>= max_eval:
@@ -103,7 +122,6 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
         min_eval = np.inf
         best_move = None
         for move in sorted_list:
-            #print(min_eval,best_move,move,board.fen())
             board.push(move)
             eval,a = minimax_with_pruning_and_policyeval(board,depth-1,True,alpha,beta,value_agent,policy_model)
             if eval<= min_eval:
@@ -116,6 +134,7 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
         return min_eval, best_move
 
 def get_board_evaluation(board):
+    ### Execution time: 0.000453
     if board.is_game_over():
         winner = board.outcome().winner
         if winner is None:
@@ -141,17 +160,19 @@ def get_board_evaluation(board):
     return count_white-count_black
 
 def get_players_piece_maps(board):
-  pieces = board.piece_map()
-  white_map = dict()
-  black_map = dict()
-  for k,v in pieces.items():
-    if str(v).islower():
-      black_map[k] = v
-    else:
-      white_map[k] = v
-  return white_map,black_map
+    ### Execution time: 0.000391
+    pieces = board.piece_map()
+    white_map = dict()
+    black_map = dict()
+    for k,v in pieces.items():
+        if str(v).islower():
+            black_map[k] = v
+        else:
+            white_map[k] = v
+    return white_map,black_map
 
 def get_sorted_move_list(board,agent = None):
+    ### Execution time: 0.001401
     if agent is None:
         checkmate_list = []
         check_list = []
@@ -161,6 +182,7 @@ def get_sorted_move_list(board,agent = None):
         castling_list = []
         other_list = []
         move_list = list(board.legal_moves)
+        w_map,b_map = get_players_piece_maps(board)
         for move in move_list:
             if board.is_checkmate():
                 board.push(move)
@@ -179,7 +201,6 @@ def get_sorted_move_list(board,agent = None):
                 other_list.append(move)
                 attacks = board.attacks(move.to_square)
                 if attacks:
-                    w_map,b_map = get_players_piece_maps(board)
                     if not bool(board.turn):
                         #white to play
                         if attacks.intersection(b_map):

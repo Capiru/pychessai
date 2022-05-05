@@ -8,6 +8,8 @@ def match(agent_one,agent_two,is_update_elo = True):
         game = ch.Board()
         agent_one.is_white = True
         agent_two.is_white = False
+        agent_one.positions = 0
+        agent_two.positions = 0
 
         while game.is_game_over() is False:
             move = agent_one.choose_move(game.fen())
@@ -56,7 +58,7 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
                 #black win
                 outcomes[2] += 1
         if progress_bar:
-            progress.set_description(str(outcomes)+"  1:"+str(round(agent_one.elo,2))+"   2:"+str(round(agent_two.elo,2)))
+            progress.set_description(str(outcomes)+"  1:"+str(round(agent_one.elo,2))+"  1-pos:"+str(agent_one.positions)+"   2:"+str(round(agent_two.elo,2)+"  2-pos:"+str(agent_two.positions)))
 
     return outcomes
 
