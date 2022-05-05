@@ -2,15 +2,16 @@ import chess as ch
 import numpy as np
 import torch
 from tqdm import tqdm
+import time
 
-def match(agent_one,agent_two,is_update_elo = True):
+def match(agent_one,agent_two,is_update_elo = True,save_tensor = True):
     try:
         game = ch.Board()
         agent_one.is_white = True
         agent_two.is_white = False
         agent_one.positions = 0
         agent_two.positions = 0
-
+        
         while game.is_game_over() is False:
             move = agent_one.choose_move(game)
             game.push(move[0])
@@ -22,13 +23,18 @@ def match(agent_one,agent_two,is_update_elo = True):
 
         if is_update_elo:
             update_elo_agents(agent_one,agent_two,game.outcome().winner)
-        return game.outcome().winner
+        if save_tensor:
+            winner = game.outcome().winner
+            match_tensor = get_match_as_fen_tensor(game,winner)
+            return winner,match_tensor
+        else:
+            return game.outcome().winner
     except Exception() as e:
         print(game.fen())
         print(e)
         raise AssertionError
 
-def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True):
+def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True,save_match_tensor = True):
     outcomes = [0, 0, 0]
     if progress_bar:
         progress = tqdm(range(n), desc="", total=n)
@@ -37,9 +43,17 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
 
     for i in progress:
         if i % 2 == 0:
-            outcome = match(agent_one,agent_two)
+            if save_match_tensor:
+                outcome,tensor = match(agent_one,agent_two)
+                torch.save(tensor,time.time()+".pt")
+            else:
+                outcome = match(agent_one,agent_two,save_tensor=False)
         else:
-            outcome = match(agent_two,agent_one)
+            if save_match_tensor:
+                torch.save(tensor,time.time()+".pt")
+                outcome,tensor = match(agent_two,agent_one)
+            else:
+                outcome =  match(agent_two,agent_one,save_tensor=False)
         if outcome is None:
             #draw
             outcomes[1] += 1
@@ -124,7 +138,7 @@ def get_fen_as_tensor(fen):
             file_ += 1
     return tensor
 
-def get_match_as_fen_tensor(board):
+def get_match_as_fen_tensor(board,winner):
     pytorch = True
     match_len = len(board.move_stack)
     num_pieces = 6
@@ -134,12 +148,22 @@ def get_match_as_fen_tensor(board):
       input_tensor_size = (match_len,num_pieces*num_players,board_size,board_size)
     else:
       input_tensor_size = (match_len,board_size,board_size,num_pieces*num_players)
+    target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
     for i in range(match_len):
         fen=board.board_fen()
         tensor[i,:,:,:] = get_fen_as_tensor(fen)
         board.pop()
-    return tensor
+        if winner is None:
+            target_tensor[i] = 0.5
+        elif winner and board.turn:
+            target_tensor[i] = 1
+        elif not winner and not board.turn:
+            target_tensor[i] = 1
+        else:
+            target_tensor[i] = 0
+        
+    return [tensor,target_tensor]
 
 if __name__ == "__main:__":
     fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
