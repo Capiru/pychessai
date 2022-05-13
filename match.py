@@ -34,6 +34,13 @@ def match(agent_one,agent_two,is_update_elo = True,save_tensor = True):
         print(e)
         raise AssertionError
 
+def save_tensor(tensor):
+    positions,outcomes = tensor
+    for i in range(positions.size(dim=0)):
+        torch.save([positions[i,:,:,:],outcomes[i]],str(time.time())+str(i)+".pt")
+    return None
+
+
 def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True,save_match_tensor = True):
     outcomes = [0, 0, 0]
     if progress_bar:
@@ -45,15 +52,13 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
         if i % 2 == 0:
             if save_match_tensor:
                 outcome,tensor = match(agent_one,agent_two)
-                for i in range(tensor.size(dim=0)):
-                    torch.save(tensor[i,:,:,:],str(time.time())+str(i)+".pt")
+                save_tensor(tensor)
             else:
                 outcome = match(agent_one,agent_two,save_tensor=False)
         else:
             if save_match_tensor:
                 outcome,tensor = match(agent_two,agent_one)
-                for i in range(tensor.size(dim=0)):
-                    torch.save(tensor[i,:,:,:],str(time.time())+str(i)+".pt")
+                save_tensor(tensor)
             else:
                 outcome =  match(agent_two,agent_one,save_tensor=False)
         if outcome is None:
