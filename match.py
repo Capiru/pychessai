@@ -9,7 +9,7 @@ def start_from_opening(openings_path = "./openings/df_openings.csv"):
     df = pd.read_csv(openings_path)
     opening_len = len(df)
     random_idx = np.random.randint(0,opening_len-1)
-    return df.iloc[random_idx].starting_fen
+    return str(df.iloc[random_idx].starting_fen)
 
 def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,save_tensor = True):
     try:
@@ -185,3 +185,4 @@ def get_match_as_fen_tensor(board,winner):
 if __name__ == "__main:__":
     fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
     print(get_fen_as_tensor(fen_test))
+    print(start_from_opening())
