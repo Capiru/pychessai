@@ -5,9 +5,18 @@ import torch
 from tqdm import tqdm
 import time
 
-def match(agent_one,agent_two,is_update_elo = True,save_tensor = True):
+def start_from_opening(openings_path = "./openings/df_openings.csv"):
+    df = pd.read_csv(openings_path)
+    opening_len = len(df)
+    random_idx = np.random.randint(0,opening_len-1)
+    return df.iloc[random_idx].starting_fen
+
+def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,save_tensor = True):
     try:
-        game = ch.Board()
+        if start_from_opening:
+            game = ch.Board(start_from_opening())
+        else:
+            game = ch.Board()
         agent_one.is_white = True
         agent_two.is_white = False
         agent_one.positions = 0
@@ -35,12 +44,6 @@ def match(agent_one,agent_two,is_update_elo = True,save_tensor = True):
         print(e)
         raise AssertionError
 
-def start_from_opening(openings_path = "./openings/df_openings.csv"):
-    df = pd.read_csv(openings_path)
-    opening_len = len(df)
-    random_idx = np.random.randint(0,opening_len-1)
-    return df.iloc[random_idx].starting_fen
-
 def save_tensor(tensor):
     positions,outcomes = tensor
     for i in range(positions.size(dim=0)):
@@ -48,7 +51,7 @@ def save_tensor(tensor):
     return None
 
 
-def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True,save_match_tensor = True):
+def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,progress_bar = True,save_match_tensor = True):
     outcomes = [0, 0, 0]
     if progress_bar:
         progress = tqdm(range(n), desc="", total=n)
@@ -58,16 +61,16 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,progress_bar = True
     for i in progress:
         if i % 2 == 0:
             if save_match_tensor:
-                outcome,tensor = match(agent_one,agent_two)
+                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening)
                 save_tensor(tensor)
             else:
-                outcome = match(agent_one,agent_two,save_tensor=False)
+                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,save_tensor=False)
         else:
             if save_match_tensor:
-                outcome,tensor = match(agent_two,agent_one)
+                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening)
                 save_tensor(tensor)
             else:
-                outcome =  match(agent_two,agent_one,save_tensor=False)
+                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,save_tensor=False)
         if outcome is None:
             #draw
             outcomes[1] += 1
