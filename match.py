@@ -1,5 +1,6 @@
 import chess as ch
 import numpy as np
+import pandas as pd
 import torch
 from tqdm import tqdm
 import time
@@ -33,6 +34,12 @@ def match(agent_one,agent_two,is_update_elo = True,save_tensor = True):
         print(game.fen())
         print(e)
         raise AssertionError
+
+def start_from_opening(openings_path = "./openings/df_openings.csv"):
+    df = pd.read_csv(openings_path)
+    opening_len = len(df)
+    random_idx = np.random.randint(0,opening_len-1)
+    return df.iloc[random_idx].starting_fen
 
 def save_tensor(tensor):
     positions,outcomes = tensor
