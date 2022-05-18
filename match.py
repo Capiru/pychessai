@@ -5,7 +5,7 @@ import torch
 from tqdm import tqdm
 import time
 
-def start_from_opening(openings_path = "./openings/df_openings.csv"):
+def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     df = pd.read_csv(openings_path)
     opening_len = len(df)
     random_idx = np.random.randint(0,opening_len-1)
@@ -14,7 +14,7 @@ def start_from_opening(openings_path = "./openings/df_openings.csv"):
 def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,save_tensor = True):
     try:
         if start_from_opening:
-            game = ch.Board(start_from_opening())
+            game = ch.Board(fen_start_from_opening())
         else:
             game = ch.Board()
         agent_one.is_white = True
@@ -185,4 +185,4 @@ def get_match_as_fen_tensor(board,winner):
 if __name__ == "__main:__":
     fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
     print(get_fen_as_tensor(fen_test))
-    print(start_from_opening())
+    print(fen_start_from_opening())
