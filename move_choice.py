@@ -151,10 +151,10 @@ def minimax_with_pruning_policyeval_positionredundancy(board,depth,is_player,alp
         for move in sorted_list:
             board.push(move)
             try:
-                eval = positions_analysed[board.board_fen]
+                eval = positions_analysed[board.board_fen()]
             except:
                 eval,a,positions,positions_analysed = minimax_with_pruning_policyeval_positionredundancy(board,depth-1,False,alpha,beta,value_agent,policy_model,positions,positions_analysed)
-                positions_analysed[board.board_fen] = eval
+                positions_analysed[board.board_fen()] = eval
             if eval>= max_eval:
                 max_eval = eval
                 best_move = move
@@ -169,10 +169,10 @@ def minimax_with_pruning_policyeval_positionredundancy(board,depth,is_player,alp
         for move in sorted_list:
             board.push(move)
             try:
-                eval = positions_analysed[board.board_fen]
+                eval = positions_analysed[board.board_fen()]
             except:
                 eval,a,positions = minimax_with_pruning_policyeval_positionredundancy(board,depth-1,True,alpha,beta,value_agent,policy_model,positions,positions_analysed)
-                positions_analysed[board.board_fen] = eval
+                positions_analysed[board.board_fen()] = eval
             if eval<= min_eval:
                 min_eval = eval
                 best_move = move
