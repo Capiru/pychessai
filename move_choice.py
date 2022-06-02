@@ -141,9 +141,9 @@ def minimax_with_pruning_policyeval_positionredundancy(board,depth,is_player,alp
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if value_agent is None:
-            return get_board_evaluation(board),None,positions
+            return get_board_evaluation(board),None,positions,positions_analysed
         else:
-            return agent.get_board_evaluation(board),None,positions
+            return agent.get_board_evaluation(board),None,positions,positions_analysed
     sorted_list = get_sorted_move_list(board,agent = policy_model)
     if is_player:
         max_eval = -np.inf
