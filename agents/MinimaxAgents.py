@@ -38,7 +38,7 @@ class MinimaxPruningPositionRedundancyAgent(object):
         self.positions_analysed = {}
     def choose_move(self,board):
         self.board = board
-        score,move,positions,positions_analysed = minimax_with_pruning_policyeval_positionredundancy(self.board,self.depth,self.is_white)
+        score,move,positions,positions_analysed = minimax_with_pruning_policyeval_positionredundancy(self.board,self.depth,self.is_white,positions_analysed=self.positions_analysed)
         self.positions += positions
         self.positions_analysed.update(positions_analysed)
         return [move]
