@@ -4,6 +4,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 import time
+import math
 
 def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     df = pd.read_csv(openings_path)
@@ -155,6 +156,12 @@ def get_fen_as_tensor(fen):
             file_ += 1
     return tensor
 
+def decaying_function_cosdecay(l,x,winner):
+    if winner:
+        return math.cos(math.pi/2/l*x-math.pi/2)/2+0.5
+    else:
+        return math.cos(math.pi/2/l*x)/2
+
 def get_match_as_fen_tensor(board,winner):
     pytorch = True
     match_len = len(board.move_stack)
@@ -174,11 +181,11 @@ def get_match_as_fen_tensor(board,winner):
         if winner is None:
             target_tensor[i] = 0.5
         elif winner and board.turn:
-            target_tensor[i] = 1
+            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=True)
         elif not winner and not board.turn:
-            target_tensor[i] = 1
+            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=True)
         else:
-            target_tensor[i] = 0
+            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=False)
         
     return [tensor,target_tensor]
 

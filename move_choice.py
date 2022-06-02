@@ -156,6 +156,55 @@ def get_board_evaluation(board):
                 print(fen)
     return count_white-count_black
 
+def rival_board_evaluation(board):
+    ### Execution time: 0.000453
+    if board.is_game_over():
+        winner = board.outcome().winner
+        if winner is None:
+            return 0
+        elif winner is True:
+            return 50000
+        else:
+            return -50000
+    eval_black = 0
+    eval_white = 0
+    fen = board.shredder_fen()
+    dic_ = {"p":100,"r":500,"n":325,"b":340,"q":900,"k":10000}
+    remainder_dic = {1:"A",2:"B",3:"C",4:"D",5:"E",6:"F",7:"G",8:"H",}
+    white_piece_map = {"p":[],"r":[],"n":[],"b":[],"q":[],"k":[]}
+    black_piece_map = {"p":[],"r":[],"n":[],"b":[],"q":[],"k":[]}
+    board_pos = 0
+    for ch in fen.split(" ")[0]:
+        if str.islower(ch):
+            board_pos += 1
+            eval_black += dic_[ch]
+            current_pos = remainder_dic[board_pos%8]+str(board_pos//8+1)
+            black_piece_map[ch].append(current_pos)
+        elif str.isnumeric(ch):
+            board_pos += int(ch)
+            continue
+        elif ch == "/":
+            continue
+        else:
+            board_pos += 1
+            eval_white += dic_[ch.lower()]
+            current_pos = remainder_dic[board_pos%8]+str(board_pos//8+1)
+            white_piece_map[ch.lower()].append(current_pos)
+    diff_white,diff_black = rival_pos_eval(white_map,black_map)
+    return eval_white-eval_black
+
+def rival_pos_eval(white_map,black_map):
+    white_diff = 0
+    black_diff = 0
+    ###Pawn Evaluation
+    for piece_name,pieces_list in white_map:
+        for piece in pieces_list:
+            if piece == "p":
+                white_diff += 1
+            continue
+
+    return white_diff,black_diff
+
 def get_players_piece_maps(board):
     ### Execution time: 0.000391
     pieces = board.piece_map()
