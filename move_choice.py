@@ -171,7 +171,7 @@ def minimax_with_pruning_policyeval_positionredundancy(board,depth,is_player,alp
             try:
                 eval = positions_analysed[board.board_fen()]
             except:
-                eval,a,positions = minimax_with_pruning_policyeval_positionredundancy(board,depth-1,True,alpha,beta,value_agent,policy_model,positions,positions_analysed)
+                eval,a,positions,positions_analysed = minimax_with_pruning_policyeval_positionredundancy(board,depth-1,True,alpha,beta,value_agent,policy_model,positions,positions_analysed)
                 positions_analysed[board.board_fen()] = eval
             if eval<= min_eval:
                 min_eval = eval
