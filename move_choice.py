@@ -316,6 +316,8 @@ def bishop_rival_eval(bishop_list,player_diag_map,diag_pos_map):
         diff += bishop_pair
         diags = diag_pos_map[bishop_list[0]]
         diags += diag_pos_map[bishop_list[1]]
+    elif len(bishop_list) == 0:
+        return 0
     else:
         diags = diag_pos_map[bishop_list[0]]
     for diag in diags:
