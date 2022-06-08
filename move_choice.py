@@ -337,7 +337,7 @@ def rook_rival_eval(rook_list,player_position_map,opp_position_map,is_white):
         diff += 15
     for rook in rook_list:
         min_dist = min(abs(file_dic[rook[0]]-file_dic[opp_position_map["k"][0]]),abs(int(rook[1])-int(opp_position_map["k"][1])))
-        diff += rook_bonuses_king_proximity[min_dist]
+        diff += bonuses_king_proximity[min_dist]
         ## 3 bonus if no friendly pawns in front and enemy 10 bonus if no pawns in front
         if rook[0] not in player_position_map["p"] and rook[0] not in opp_position_map["p"]:
             diff += 10
