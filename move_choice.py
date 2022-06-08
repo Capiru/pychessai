@@ -213,6 +213,22 @@ def get_board_evaluation(board):
                 print(fen)
     return count_white-count_black
 
+def build_diag_maps():
+    diagonal_maps = {"A1":[1,22],"A2":[2,21],"A3":[3,20],"A4":[4,19],"A5":[5,18],"A6":[6,17],"A7":[7,16],"A8":[8,30],
+                    "B1":[15,21],"B2":[1,20],"B3":[2,19],"B4":[3,18],"B5":[4,17],"B6":[5,16],"B7":[30,6],"B8":[7,29],
+                    "C1":[14,20],"C2":[19,15],"C3":[1,18],"C4":[17,2],"C5":[3,16],"C6":[30,4],"C7":[5,29],"C8":[6,28],
+                    "D1":[13,19],"D2":[14,18],"D3":[15,17],"D4":[16,1],"D5":[30,2],"D6":[3,29],"D7":[4,28],"D8":[5,27],
+                    "E1":[12,18],"E2":[13,17],"E3":[14,16],"E4":[15,30],"E5":[1,29],"E6":[2,28],"E7":[3,27],"E8":[4,26],
+                    "F1":[11,17],"F2":[12,16],"F3":[13,30],"F4":[14,29],"F5":[15,28],"F6":[1,27],"F7":[2,26],"F8":[3,25],
+                    "G1":[10,16],"G2":[11,30],"G3":[12,29],"G4":[13,28],"G5":[14,27],"G6":[15,26],"G7":[1,25],"G8":[2,24],
+                    "H1":[9,30],"H2":[10,29],"H3":[11,28],"H4":[12,27],"H5":[13,26],"H6":[14,25],"H7":[15,24],"H8":[1,23] }
+
+    diag_num_maps = {1:"A1B2C3D4E5F6G7H8",2:"A2B3C4D5E6F7G8",3:"A3B4C5D6E7F8",4:"A4B5C6D7E8",5:"A5B6C7D8",6:"A6B7C8",
+                    7:"A7B8",8:"A8",9:"H1",10:"H2G1",11:"H3G2F1",12:"H4G3F2E1",13:"H5G4F3E2D1",14:"H6G5F4E3D2C1",15:"H7G6F5E4D3C2B1",
+                    16:"A7B6C5D4E3F2G1",17:"A6B5C4D3E2F1",18:"A5B4C3D2E1",19:"A4B3C2D1",20:"A3B2C1",21:"A2B1",22:"A1",23:"H8",
+                    24:"H7G8",25:"H6G7F8",26:"H5G6F7E8",27:"H4G5F6E7D8",28:"H3G4F5E6D7C8",29:"H2G3F4E5D6C7B8",30:"H1G2F3E4D5C6B7A8"}
+    return diagonal_maps,diag_num_maps
+
 def rival_board_evaluation(board):
     ### Execution time: 0.000453
     if board.is_game_over():
@@ -227,9 +243,14 @@ def rival_board_evaluation(board):
     eval_white = 0
     fen = board.shredder_fen()
     dic_ = {"p":100,"r":500,"n":325,"b":340,"q":900,"k":10000}
-    remainder_dic = {1:"A",2:"B",3:"C",4:"D",5:"E",6:"F",7:"G",8:"H",}
+    remainder_dic = {1:"A",2:"B",3:"C",4:"D",5:"E",6:"F",7:"G",8:"H"}
     white_piece_map = {"p":[],"r":[],"n":[],"b":[],"q":[],"k":[]}
     black_piece_map = {"p":[],"r":[],"n":[],"b":[],"q":[],"k":[]}
+    white_piece_position_stringmap = {"p":"","r":"","n":"","b":"","q":"","k":""}
+    black_piece_position_stringmap = {"p":"","r":"","n":"","b":"","q":"","k":""}
+    diag_pos_map,diag_num_map = build_diag_maps()
+    white_diag_map = {(i+1):"" for i in range(30)}
+    black_diag_map = {(i+1):"" for i in range(30)}
     board_pos = 0
     for ch in fen.split(" ")[0]:
         if str.islower(ch):
@@ -237,6 +258,10 @@ def rival_board_evaluation(board):
             eval_black += dic_[ch]
             current_pos = remainder_dic[board_pos%8]+str(board_pos//8+1)
             black_piece_map[ch].append(current_pos)
+            black_piece_position_stringmap[ch]+=current_pos
+            diags = diag_pos_map[current_pos]
+            black_diag_map[diags[0]]+=ch
+            black_diag_map[diags[1]]+=ch
         elif str.isnumeric(ch):
             board_pos += int(ch)
             continue
@@ -247,20 +272,100 @@ def rival_board_evaluation(board):
             eval_white += dic_[ch.lower()]
             current_pos = remainder_dic[board_pos%8]+str(board_pos//8+1)
             white_piece_map[ch.lower()].append(current_pos)
-    diff_white,diff_black = rival_pos_eval(white_map,black_map)
+            white_piece_position_stringmap[ch.lower()]+=current_pos
+            diags = diag_pos_map[current_pos]
+            white_diag_map[diags[0]]+=ch.lower()
+            white_diag_map[diags[1]]+=ch.lower()
+    eval_white+=pawn_rival_eval(white_piece_map["p"],white_piece_position_stringmap,black_piece_position_stringmap,is_white=True)
+    eval_white+=bishop_rival_eval(white_piece_map["b"],white_diag_map,diag_pos_map)
+    eval_white+=knight_rival_eval(white_piece_map["k"])
+    eval_white+=rook_rival_eval(white_piece_map["r"],white_piece_position_stringmap,black_piece_position_stringmap,is_white=True)
+    eval_white+=queen_rival_eval(white_piece_map["q"],black_piece_position_stringmap,white_diag_map,diag_pos_map)
+
+    eval_black+=pawn_rival_eval(black_piece_map["p"],black_piece_position_stringmap,white_piece_position_stringmap,is_white=False)
+    eval_black+=bishop_rival_eval(black_piece_map["b"],black_diag_map,diag_pos_map)
+    eval_black+=knight_rival_eval(black_piece_map["k"])
+    eval_black+=rook_rival_eval(black_piece_map["r"],black_piece_position_stringmap,white_piece_position_stringmap,is_white=False)
+    eval_black+=queen_rival_eval(black_piece_map["q"],white_piece_position_stringmap,black_diag_map,diag_pos_map)
     return eval_white-eval_black
 
-def rival_pos_eval(white_map,black_map):
-    white_diff = 0
-    black_diff = 0
-    ###Pawn Evaluation
-    for piece_name,pieces_list in white_map:
-        for piece in pieces_list:
-            if piece == "p":
-                white_diff += 1
-            continue
+def pawn_rival_eval(pawn_list,player_position_map,opp_position_map,is_white):
+    diff = 0
+    advancement_pawn = {"1":0,"2":0,"3":1,"4":3,"5":5,"6":13,"7":34,"8":900}
+    for position in pawn_list:
+        if player_position_map["p"].count(position[0]) > 1:
+            ##doubled pawns
+            diff -= 7
+        if not str(int(position[1])-1) in player_position_map["p"] or not str(int(position[1])+1) in player_position_map["p"]:
+            ### isolated pawn
+            diff -= 2
+        if position[0] not in opp_position_map["p"]:
+            ### passed pawn
+            diff += 1
+        if is_white:
+            diff += advancement_pawn[position[1]]
+        else:
+            diff += advancement_pawn[str(9-int(position[1]))]
+    return diff
 
-    return white_diff,black_diff
+def bishop_rival_eval(bishop_list,player_diag_map,diag_pos_map):
+    diff = 0
+    bishop_pair = 30
+    if len(bishop_list) == 2:
+        ## Bishop Pair
+        diff += bishop_pair
+        diags = diag_pos_map[bishop_list[0]]
+        diags += diag_pos_map[bishop_list[1]]
+    else:
+        diags = diag_pos_map[bishop_list[0]]
+    for diag in diags:
+        ## if same diagonal as a same color pawn, reduce diff
+        if "p" in player_diag_map[diag]:
+            diff -= 15
+    return diff
+
+def knight_rival_eval(knight_list):
+    diff = 0
+    return diff
+
+def rook_rival_eval(rook_list,player_position_map,opp_position_map,is_white):
+    diff = 0
+    file_dic = {"A":1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"H":8}
+    bonuses_king_proximity = {0:15,1:9,2:5,3:4,4:3,5:1,6:-1,7:-3}
+    if len(rook_list) == 2 and (rook_list[0][0] == rook_list[1][0] or rook_list[0][1] == rook_list[1][1]):
+        ## Connected rooks
+        diff += 15
+    for rook in rook_list:
+        min_dist = min(abs(file_dic[rook[0]]-file_dic[opp_position_map["k"][0][0]]),abs(int(rook[1])-int(opp_position_map["k"][0][1])))
+        diff += rook_bonuses_king_proximity[min_dist]
+        ## 3 bonus if no friendly pawns in front and enemy 10 bonus if no pawns in front
+        if rook[0] not in player_position_map["p"] and rook[0] not in opp_position_map["p"]:
+            diff += 10
+        elif position[0] not in player_position_map["p"] and position[0] in opp_position_map["p"]:
+            diff += 3
+        ## 20 bonus if rank == 7
+        if "7" in rook and is_white:
+            diff += 20
+        elif not is_white and "2" in rook:
+            diff += 20
+    return diff
+
+def queen_rival_eval(queen_list,opp_position_map,player_diag_map,diag_pos_map):
+    diff = 0
+    file_dic = {"A":1,"B":2,"C":3,"D":4,"E":5,"F":6,"G":7,"H":8}
+    bonuses_king_proximity = {0:15,1:9,2:5,3:4,4:3,5:1,6:-1,7:-3}
+    ## if same diagonal as bishop + x points
+    diags = []
+    for queen in queen_list:
+        diags += diag_pos_map[queen]
+        diff += bonuses_king_proximity[abs(file_dic[queen[0]]-file_dic[opp_position_map["k"][0][0]])]
+        diff += bonuses_king_proximity[abs(int(queen[1])-int(opp_position_map["k"][0][1]))]
+    for diag in diags:
+        if "b" in player_diag_map[diag]:
+            diff += 15
+    ## distance from enemy king is awarded
+    
+    return diff
 
 def get_players_piece_maps(board):
     ### Execution time: 0.000391
