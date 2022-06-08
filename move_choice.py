@@ -341,7 +341,7 @@ def rook_rival_eval(rook_list,player_position_map,opp_position_map,is_white):
         ## 3 bonus if no friendly pawns in front and enemy 10 bonus if no pawns in front
         if rook[0] not in player_position_map["p"] and rook[0] not in opp_position_map["p"]:
             diff += 10
-        elif position[0] not in player_position_map["p"] and position[0] in opp_position_map["p"]:
+        elif rook[0] not in player_position_map["p"] and rook[0] in opp_position_map["p"]:
             diff += 3
         ## 20 bonus if rank == 7
         if "7" in rook and is_white:
