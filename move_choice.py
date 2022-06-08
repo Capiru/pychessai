@@ -256,7 +256,7 @@ def get_rival_board_evaluation(board):
         if str.islower(ch):
             board_pos += 1
             eval_black += dic_[ch]
-            current_pos = remainder_dic[board_pos%8]+str(board_pos//8+1)
+            current_pos = remainder_dic[board_pos%8+1]+str(board_pos//8+1)
             black_piece_map[ch].append(current_pos)
             black_piece_position_stringmap[ch]+=current_pos
             diags = diag_pos_map[current_pos]
@@ -270,7 +270,7 @@ def get_rival_board_evaluation(board):
         else:
             board_pos += 1
             eval_white += dic_[ch.lower()]
-            current_pos = remainder_dic[board_pos%8]+str(board_pos//8+1)
+            current_pos = remainder_dic[board_pos%8+1]+str(board_pos//8+1)
             white_piece_map[ch.lower()].append(current_pos)
             white_piece_position_stringmap[ch.lower()]+=current_pos
             diags = diag_pos_map[current_pos]
