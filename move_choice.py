@@ -336,7 +336,7 @@ def rook_rival_eval(rook_list,player_position_map,opp_position_map,is_white):
         ## Connected rooks
         diff += 15
     for rook in rook_list:
-        min_dist = min(abs(file_dic[rook[0]]-file_dic[opp_position_map["k"][0][0]]),abs(int(rook[1])-int(opp_position_map["k"][0][1])))
+        min_dist = min(abs(file_dic[rook[0]]-file_dic[opp_position_map["k"][0]]),abs(int(rook[1])-int(opp_position_map["k"][1])))
         diff += rook_bonuses_king_proximity[min_dist]
         ## 3 bonus if no friendly pawns in front and enemy 10 bonus if no pawns in front
         if rook[0] not in player_position_map["p"] and rook[0] not in opp_position_map["p"]:
@@ -358,8 +358,8 @@ def queen_rival_eval(queen_list,opp_position_map,player_diag_map,diag_pos_map):
     diags = []
     for queen in queen_list:
         diags += diag_pos_map[queen]
-        diff += bonuses_king_proximity[abs(file_dic[queen[0]]-file_dic[opp_position_map["k"][0][0]])]
-        diff += bonuses_king_proximity[abs(int(queen[1])-int(opp_position_map["k"][0][1]))]
+        diff += bonuses_king_proximity[abs(file_dic[queen[0]]-file_dic[opp_position_map["k"][0]])]
+        diff += bonuses_king_proximity[abs(int(queen[1])-int(opp_position_map["k"][1]))]
     for diag in diags:
         if "b" in player_diag_map[diag]:
             diff += 15
