@@ -58,7 +58,7 @@ def save_tensor(tensor):
     return None
 
 
-def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,progress_bar = True,save_match_tensor = True):
+def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,progress_bar = True,save_match_tensor = True):
     outcomes = [0, 0, 0]
     if progress_bar:
         progress = tqdm(range(n), desc="", total=n)
@@ -68,16 +68,16 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
     for i in progress:
         if i % 2 == 0:
             if save_match_tensor:
-                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening)
+                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random)
                 save_tensor(tensor)
             else:
-                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,save_tensor=False)
+                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False)
         else:
             if save_match_tensor:
-                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening)
+                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random)
                 save_tensor(tensor)
             else:
-                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,save_tensor=False)
+                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False)
         if outcome is None:
             #draw
             outcomes[1] += 1
