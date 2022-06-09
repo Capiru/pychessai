@@ -22,8 +22,9 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
             if start_from_random and random_start_depth%2 == 0:
                 for i in range(random_start_depth):
                     legal_moves = list(game.legal_moves)
-                    move = random_choice(legal_moves,None,1)
-                    game.push(move[0])
+                    if len(legal_moves) > 0:
+                        move = random_choice(legal_moves,None,1)
+                        game.push(move[0])
         agent_one.is_white = True
         agent_two.is_white = False
         agent_one.positions = 0
@@ -64,7 +65,6 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
         progress = tqdm(range(n), desc="", total=n)
     else:
         progress = range(n)
-
     for i in progress:
         if i % 2 == 0:
             if save_match_tensor:
@@ -164,9 +164,9 @@ def get_fen_as_tensor(fen):
 
 def decaying_function_cosdecay(l,x,winner):
     if winner:
-        return math.cos(math.pi/2/l*x-math.pi/2)/2+0.5
+        return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
     else:
-        return math.cos(math.pi/2/l*x)/2
+        return -(math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5)
 
 def get_match_as_fen_tensor(board,winner):
     pytorch = True
@@ -186,9 +186,7 @@ def get_match_as_fen_tensor(board,winner):
         board.pop()
         if winner is None:
             target_tensor[i] = 0.5
-        elif winner and board.turn:
-            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=True)
-        elif not winner and not board.turn:
+        elif winner:
             target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=True)
         else:
             target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=False)
