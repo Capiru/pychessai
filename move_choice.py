@@ -6,16 +6,17 @@ def random_choice(possible_moves , probability_map , exploration_size):
         probability_map = [1/len(possible_moves) for x in range(len(possible_moves))]
     return np.random.choice(possible_moves,size=exploration_size,p=probability_map)
 
-def all_moves(board,depth,positions):
+def all_moves(board,depth,positions,nodes):
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
-        return positions
+        nodes += 1
+        return positions,nodes
     for move in list(board.legal_moves):
         positions += 1
         board.push(move)
-        positions = all_moves(board,depth-1,positions)
+        positions,nodes = all_moves(board,depth-1,positions)
         board.pop()
-    return positions
+    return positions,nodes
 
 def minimax(board,depth,is_player,positions=0,agent = None):
     ### depth 1 - 21 positions - time 0.003461

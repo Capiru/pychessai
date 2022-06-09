@@ -5,6 +5,7 @@ import torch
 from tqdm import tqdm
 import time
 import math
+from move_choice import random_choice
 
 def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     df = pd.read_csv(openings_path)
@@ -12,12 +13,17 @@ def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     random_idx = np.random.randint(0,opening_len-1)
     return str(df.iloc[random_idx].starting_fen)
 
-def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,save_tensor = True):
+def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=6,save_tensor = True):
     try:
         if start_from_opening:
             game = ch.Board(fen_start_from_opening())
         else:
             game = ch.Board()
+            if start_from_random and random_start_depth%2 == 0:
+                for i in range(random_start_depth):
+                    legal_moves = list(game.legal_moves)
+                    move = random_choice(legal_moves,None,1)
+                    game.push(move[0])
         agent_one.is_white = True
         agent_two.is_white = False
         agent_one.positions = 0
