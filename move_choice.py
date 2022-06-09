@@ -14,7 +14,7 @@ def all_moves(board,depth,positions,nodes):
     for move in list(board.legal_moves):
         positions += 1
         board.push(move)
-        positions,nodes = all_moves(board,depth-1,positions)
+        positions,nodes = all_moves(board,depth-1,positions,nodes)
         board.pop()
     return positions,nodes
 
