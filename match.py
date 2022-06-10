@@ -162,11 +162,8 @@ def get_fen_as_tensor(fen):
             file_ += 1
     return tensor
 
-def decaying_function_cosdecay(l,x,winner):
-    if winner:
-        return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
-    else:
-        return -(math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5)
+def decaying_function_cosdecay(l,x):
+    return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
 
 def get_match_as_fen_tensor(board,winner):
     pytorch = True
@@ -187,9 +184,9 @@ def get_match_as_fen_tensor(board,winner):
         if winner is None:
             target_tensor[i] = 0.5
         elif winner:
-            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=True)
+            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i)
         else:
-            target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i,winner=False)
+            target_tensor[i] = -decaying_function_cosdecay(match_len,match_len-i)
         
     return [tensor,target_tensor]
 
