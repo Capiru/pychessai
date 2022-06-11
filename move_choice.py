@@ -146,7 +146,7 @@ def attack_search_maxdepth(board,is_player,alpha = -np.inf,beta = np.inf,positio
     positions += 1
     sorted_list = get_sorted_move_list(board,only_attacks=True)
     if len(sorted_list) == 0:
-        eval = get_board_evaluation(board)
+        eval = get_rival_board_evaluation(board)
         positions_analysed[board.board_fen()+str(0)]=eval
         return eval,None,positions,positions_analysed
     else:
