@@ -530,7 +530,7 @@ def get_sorted_move_list(board,agent = None,only_attacks = False):
             board.pop()
         return_list = [*checkmate_list,*check_list,*capture_list,*attack_list,*castling_list,*other_list]
         if only_attacks:
-            return [*checkmate_list,*check_list,*capture_list]
+            return [*capture_list]
         else:
             return return_list
 
