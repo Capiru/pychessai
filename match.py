@@ -13,7 +13,7 @@ def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     random_idx = np.random.randint(0,opening_len-1)
     return str(df.iloc[random_idx].starting_fen)
 
-def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=6,save_tensor = True):
+def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=6,save_tensor = True,progress = None):
     try:
         if start_from_opening:
             game = ch.Board(fen_start_from_opening())
@@ -38,6 +38,8 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
                 break
             move = agent_two.choose_move(game)
             game.push(move[0])
+            if progress is not None:
+                progress.set_description()
 
         if is_update_elo:
             update_elo_agents(agent_one,agent_two,game.outcome().winner)
@@ -96,7 +98,7 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
                 #black win
                 outcomes[2] += 1
         if progress_bar:
-            progress.set_description(str(outcomes)+"  1:"+str(round(agent_one.elo,2))+"  1-pos:"+str(agent_one.positions)+"   2:"+str(round(agent_two.elo,2))+"  2-pos:"+str(agent_two.positions))
+            progress.set_description(str(outcomes)+"  1:"+str(agent_one.eval) +"  1-pos:"+str(agent_one.positions)+"   2:"+str(agent_two.eval)+"  2-pos:"+str(agent_two.positions))
 
     return outcomes
 
