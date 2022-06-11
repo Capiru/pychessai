@@ -215,7 +215,7 @@ def alphabeta_maxdepth(board,depth,is_player,alpha=-np.inf,beta=np.inf,value_age
             try:
                 eval = positions_analysed[board.board_fen()+str(depth)]
             except:
-                eval,a,positions,positions_analysed = minimax_with_pruning_policyeval_positionredundancy(board,depth-1,False,alpha,beta,value_agent,policy_model,positions,positions_analysed)
+                eval,a,positions,positions_analysed = alphabeta_maxdepth(board,depth-1,False,alpha,beta,value_agent,policy_model,positions,positions_analysed)
                 positions_analysed[board.board_fen()+str(depth)] = eval
             if eval>= max_eval:
                 max_eval = eval
@@ -233,7 +233,7 @@ def alphabeta_maxdepth(board,depth,is_player,alpha=-np.inf,beta=np.inf,value_age
             try:
                 eval = positions_analysed[board.board_fen()+str(depth)]
             except:
-                eval,a,positions,positions_analysed = minimax_with_pruning_policyeval_positionredundancy(board,depth-1,True,alpha,beta,value_agent,policy_model,positions,positions_analysed)
+                eval,a,positions,positions_analysed = alphabeta_maxdepth(board,depth-1,True,alpha,beta,value_agent,policy_model,positions,positions_analysed)
                 positions_analysed[board.board_fen()+str(depth)] = eval
             if eval<= min_eval:
                 min_eval = eval
