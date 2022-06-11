@@ -155,11 +155,7 @@ def attack_search_maxdepth(board,is_player,alpha = -np.inf,beta = np.inf,positio
             best_move = None
             for move in sorted_list:
                 board.push(move)
-                try:
-                    eval = positions_analysed[board.board_fen()+str(depth)]
-                except:
-                    eval,a,positions,positions_analysed = attack_search_maxdepth(board,False,alpha,beta,positions,positions_analysed)
-                    positions_analysed[board.board_fen()+str(depth)] = eval
+                eval,a,positions,positions_analysed = attack_search_maxdepth(board,False,alpha,beta,positions,positions_analysed)
                 if eval>= max_eval:
                     max_eval = eval
                     best_move = move
@@ -173,11 +169,7 @@ def attack_search_maxdepth(board,is_player,alpha = -np.inf,beta = np.inf,positio
             best_move = None
             for move in sorted_list:
                 board.push(move)
-                try:
-                    eval = positions_analysed[board.board_fen()+str(depth)]
-                except:
-                    eval,a,positions,positions_analysed = attack_search_maxdepth(board,True,alpha,beta,positions,positions_analysed)
-                    positions_analysed[board.board_fen()+str(depth)] = eval
+                eval,a,positions,positions_analysed = attack_search_maxdepth(board,True,alpha,beta,positions,positions_analysed)
                 if eval<= min_eval:
                     min_eval = eval
                     best_move = move
