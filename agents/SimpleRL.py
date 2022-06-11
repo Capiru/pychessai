@@ -106,8 +106,8 @@ class SimpleRLAgent(object):
             self.fc3 = nn.Linear(256, 1)
 
         def forward(self, x):
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.pool(F.relu(self.conv2(x)))
+            x = self.conv1(x)
+            x = self.pool(self.conv2(x))
             x = torch.flatten(x, 1) # flatten all dimensions except batch
             x = F.relu(self.fc1(x))
             x = F.relu(self.fc2(x))
