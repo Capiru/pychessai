@@ -155,6 +155,9 @@ def random_choice(possible_moves , probability_map , exploration_size):
         probability_map = [1/len(possible_moves) for x in range(len(possible_moves))]
     return np.random.choice(possible_moves,size=exploration_size,p=probability_map)
 
+def legal_moves(board):
+    return list(board.legal_moves)
+
 def all_moves(board,depth,positions,nodes):
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
