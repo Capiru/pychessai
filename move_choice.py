@@ -484,6 +484,9 @@ def build_diag_maps():
                     24:"H7G8",25:"H6G7F8",26:"H5G6F7E8",27:"H4G5F6E7D8",28:"H3G4F5E6D7C8",29:"H2G3F4E5D6C7B8",30:"H1G2F3E4D5C6B7A8"}
     return diagonal_maps,diag_num_maps
 
+def get_black_rival_eval(board):
+    return -get_rival_board_evaluation(board)
+
 def get_rival_board_evaluation(board):
     ### Execution time: 0.000453
     if board.is_game_over():
