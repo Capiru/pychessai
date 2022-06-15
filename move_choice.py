@@ -513,6 +513,8 @@ def get_sorted_move_list(board,agent = None,only_attacks = False):
             board.push(move)
             if board.is_checkmate():
                 checkmate_list.append(move)
+                board.pop()
+                return checkmate_list
             elif board.is_check():
                 check_list.append(move)
             board.pop()
