@@ -510,20 +510,19 @@ def get_sorted_move_list(board,agent = None,only_attacks = False):
         move_list = list(board.legal_moves)
         w_map,b_map = get_players_piece_maps(board)
         for move in move_list:
+            board.push(move)
             if board.is_checkmate():
-                board.push(move)
                 checkmate_list.append(move)
             elif board.is_check():
-                board.push(move)
                 check_list.append(move)
-            elif board.is_capture(move):
-                board.push(move)
+            board.pop()
+            if board.is_capture(move):
                 capture_list.append(move)
+            elif only_attacks:
+                other_list.append(move)
             elif board.is_castling(move):
-                board.push(move)
                 castling_list.append(move)
             else:
-                board.push(move)
                 other_list.append(move)
                 attacks = board.attacks(move.to_square)
                 if attacks:
@@ -537,7 +536,6 @@ def get_sorted_move_list(board,agent = None,only_attacks = False):
                         if attacks.intersection(w_map):
                             attack_list.append(move)
                             other_list.pop()
-            board.pop()
         return_list = [*checkmate_list,*check_list,*capture_list,*attack_list,*castling_list,*other_list]
         if only_attacks:
             return [*checkmate_list,*check_list,*capture_list]
