@@ -1,6 +1,7 @@
 import chess as ch
 from match import match
 from move_choice import *
+from search.search import AlphaBetaPruning
 
 class MinimaxPruningAgent(object):
     def __init__(self,depth = 3,board = ch.Board(),is_white = True):
