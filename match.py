@@ -13,7 +13,7 @@ def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     random_idx = np.random.randint(0,opening_len-1)
     return str(df.iloc[random_idx].starting_fen)
 
-def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=6,save_tensor = True,progress = None):
+def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=6,save_tensor = True,progress = None,is_player_one = True):
     try:
         if start_from_opening:
             game = ch.Board(fen_start_from_opening())
@@ -44,7 +44,7 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
         if is_update_elo:
             update_elo_agents(agent_one,agent_two,game.outcome().winner)
         if save_tensor:
-            winner = game.outcome().winner
+            winner = not (game.outcome().winner ^ is_player_one)
             match_tensor = get_match_as_fen_tensor(game,winner)
             return winner,match_tensor
         else:
@@ -61,7 +61,7 @@ def save_tensor(tensor):
     return None
 
 
-def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,progress_bar = True,save_match_tensor = True):
+def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,progress_bar = True,save_match_tensor = True,is_player_one = True):
     outcomes = [0, 0, 0]
     if progress_bar:
         progress = tqdm(range(n), desc="", total=n)
@@ -70,16 +70,16 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
     for i in progress:
         if i % 2 == 0:
             if save_match_tensor:
-                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random)
+                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,is_player_one=is_player_one)
                 save_tensor(tensor)
             else:
-                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False)
+                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False,is_player_one=is_player_one)
         else:
             if save_match_tensor:
-                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random)
+                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,is_player_one=is_player_one)
                 save_tensor(tensor)
             else:
-                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False)
+                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False,is_player_one=is_player_one)
         if outcome is None:
             #draw
             outcomes[1] += 1
@@ -140,10 +140,13 @@ def get_fen_as_tensor(fen):
     num_pieces = 6
     num_players = 2
     board_size = 8
+    real_planes = 7 ## 4 castling 1 black or white 
+    attacking_planes = 1
+    total_num_planes = num_pieces*num_players + real_planes
     if pytorch:
-        input_tensor_size = (num_pieces*num_players,board_size,board_size)
+        input_tensor_size = (total_num_planes,board_size,board_size)
     else:
-        input_tensor_size = (board_size,board_size,num_pieces*num_players)
+        input_tensor_size = (board_size,board_size,total_num_planes)
     tensor = torch.zeros(input_tensor_size)
     dic_encoder = {"p":0,"P":1,"r":2,"R":3,"n":4,"N":5,"b":6,"B":7,"q":8,"Q":9,"k":10,"K":11}
     fen_position = fen.split(" ")[0]
