@@ -13,7 +13,7 @@ def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     random_idx = np.random.randint(0,opening_len-1)
     return str(df.iloc[random_idx].starting_fen)
 
-def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=6,save_tensor = True,progress = None,is_player_one = True):
+def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=16,save_tensor = True,progress = None,is_player_one = True):
     try:
         if start_from_opening:
             game = ch.Board(fen_start_from_opening())
