@@ -44,7 +44,10 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
         if is_update_elo:
             update_elo_agents(agent_one,agent_two,game.outcome().winner)
         if save_tensor:
-            winner = not (game.outcome().winner ^ is_player_one)
+            try:
+                winner = not (game.outcome().winner ^ is_player_one)
+            except:
+                winner = None
             match_tensor = get_match_as_fen_tensor(game,winner)
             return winner,match_tensor
         else:
