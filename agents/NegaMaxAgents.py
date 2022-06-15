@@ -11,10 +11,10 @@ class NegaMaxAgent(object):
         self.is_white = is_white
         self.positions = 0
         self.eval = 0
-        self.search_fun = NegaMaxObject()
+        self.search_obj = NegaMaxObject()
     def choose_move(self,board):
         self.board = board
-        score,move = self.search_fun(self.board,self.depth,self.is_white)
+        score,move = self.search_obj.search(self.board,self.depth,self.is_white)
         self.positions += self.search_fun.positions
         self.search_fun.positions = 0
         self.eval = score
