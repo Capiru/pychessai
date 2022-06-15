@@ -177,7 +177,7 @@ class NegaMaxObject(object):
         capture_list = self.policy_fun(board,only_attacks = True)
         for move in capture_list:
             board.push(move)
-            eval = quiesce(board,not is_white,depth+1,-beta,-alpha)
+            eval = self.quiesce(board,not is_white,depth+1,-beta,-alpha)
             eval = -eval
             board.pop()
             if eval >= beta:
