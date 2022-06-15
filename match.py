@@ -176,10 +176,12 @@ def get_match_as_fen_tensor(board,winner):
     num_pieces = 6
     num_players = 2
     board_size = 8
+    real_planes = 7
+    total_num_planes = num_pieces*num_players + real_planes
     if pytorch:
-      input_tensor_size = (match_len,num_pieces*num_players,board_size,board_size)
+      input_tensor_size = (match_len,total_num_planes,board_size,board_size)
     else:
-      input_tensor_size = (match_len,board_size,board_size,num_pieces*num_players)
+      input_tensor_size = (match_len,board_size,board_size,total_num_planes)
     target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
     for i in range(match_len):
