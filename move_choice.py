@@ -693,6 +693,90 @@ class AlphaBetaPruning(object):
                 positions_analysed[board.shredder_fen()+str(depth)] = (min_eval,best_move) 
             return min_eval, best_move,positions,positions_analysed
 
+
+class NegaMaxObject(object):
+    def __init__(self,depth = 3,eval_fun = rival_eval,policy_fun=get_sorted_move_list,time_based = False,time_limit = 1):
+        self.depth = depth
+        self.eval_fun = eval_fun
+        self.policy_fun = policy_fun
+        self.time_based = time_based
+        self.time_limit = time_limit
+        self.start_time = -1
+        self.max_quiescence_depth = 5
+        self.positions = 0
+        self.positions_analysed = {}
+        if self.time_based:
+            self.search_fun = self.time_limit_search
+        else:
+            self.search_fun = self.search
+
+    def quiesce(self,board,is_white,depth,alpha,beta):
+        stand_pat = self.eval_fun(board,is_white)
+        if stand_pat >= beta:
+            return beta
+        if alpha < stand_pat:
+            alpha = stand_pat
+        capture_list = self.policy_fun(board,only_attacks = True)
+        for move in capture_list:
+            board.push(move)
+            eval = quiesce(board,not is_white,depth+1,-beta,-alpha)
+            eval = -eval
+            board.pop()
+            if eval >= beta:
+                return beta
+            if eval > alpha:
+                alpha = eval
+        return alpha
+
+    def search(self,board,depth,is_white = True,alpha = -np.inf,beta=np.inf):
+        try:
+            eval,move = self.positions_analysed[board.shredder_fen()+str(depth)]
+            return eval,move
+        except:
+            self.positions += 1
+        if depth == 0 or board.is_game_over():
+            return self.quiesce(board,is_white,depth = 1,alpha = alpha,beta = beta),None
+        best_move = None
+        move_list = self.policy_fun(board)
+        for move in move_list:
+            board.push(move)
+            eval,a = self.search(board,depth-1,not is_white,-beta,-alpha)
+            board.pop()
+            eval = -eval
+            if eval >= beta:
+                return beta,None ##fail hard beta cutoff
+            if eval > alpha:
+                alpha = eval ## alpha acts as max
+                best_move = move
+        self.positions_analysed[board.shredder_fen()+str(depth)] = alpha,best_move
+        return alpha,best_move
+
+    def time_limit_search(self):
+        self.start_time = time.process_time()
+        depth = 1
+        is_player = is_white
+        max_score,min_score = -np.inf,np.inf
+        all_pos = positions
+        best_move = None
+        all_analysed_pos = positions_analysed
+        while time.process_time()-self.start_time <= self.time_limit:
+            eval,move,positions,positions_analysed = self.search(board,depth,is_player,alpha,beta,0,all_analysed_pos)
+            all_pos += positions
+            all_analysed_pos.update(positions_analysed)
+            if is_white:
+                if eval >= max_score:
+                    max_score = eval
+                    best_move = move
+            else:
+                if eval <= min_score:
+                    min_score = eval
+                    best_move = move
+            depth += 1
+        if is_white:
+            return max_score,best_move,all_pos,all_analysed_pos
+        else:
+            return min_score,best_move,all_pos,all_analysed_pos
+
 if __name__ == "__main:__":
     board = ch.Board()
     print(minimax_with_pruning(board,2,True))
