@@ -144,7 +144,7 @@ def get_elo_diff_from_outcomes(outcomes):
     black_wins = outcomes[2]
     total_games = n_draws + white_wins +black_wins
     score = -1*black_wins +1* white_wins + 0.5*n_draws
-    elo_diff = round(-400*math.log(1/(22.5/25)-1)/math.log(10),0)
+    elo_diff = round(-400*math.log(1/(score/total_games)-1)/math.log(10),0)
     return elo_diff
 
 def get_fen_as_tensor(fen):
