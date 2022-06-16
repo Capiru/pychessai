@@ -147,6 +147,10 @@ def get_elo_diff_from_outcomes(outcomes):
     white_score = 1* white_wins + 0.5*n_draws
     black_score = 1*black_wins + 0.5*n_draws
     score = max(white_score,black_score)
+    if white_score == total_games:
+        return np.inf
+    elif black_score == total_games:
+        return -np.inf
     elo_diff = round(-400*math.log(1/(score/total_games)-1)/math.log(10),0)
     if white_score >= black_score:
         return elo_diff
