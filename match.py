@@ -64,7 +64,8 @@ def save_tensor(tensor):
     return None
 
 
-def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,progress_bar = True,save_match_tensor = True,is_player_one = True):
+def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,
+                random_start_depth = 16,progress_bar = True,save_match_tensor = True,is_player_one = True):
     outcomes = [0, 0, 0]
     if progress_bar:
         progress = tqdm(range(n), desc="", total=n)
@@ -73,16 +74,16 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
     for i in progress:
         if i % 2 == 0:
             if save_match_tensor:
-                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,is_player_one=is_player_one)
+                outcome,tensor = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,is_player_one=is_player_one)
                 save_tensor(tensor)
             else:
-                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False,is_player_one=is_player_one)
+                outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,save_tensor=False,is_player_one=is_player_one)
         else:
             if save_match_tensor:
-                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,is_player_one=is_player_one)
+                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,is_player_one=is_player_one)
                 save_tensor(tensor)
             else:
-                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,save_tensor=False,is_player_one=is_player_one)
+                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,save_tensor=False,is_player_one=is_player_one)
         if outcome is None:
             #draw
             outcomes[1] += 1
