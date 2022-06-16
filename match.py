@@ -144,9 +144,14 @@ def get_elo_diff_from_outcomes(outcomes):
     white_wins = outcomes[0]
     black_wins = outcomes[2]
     total_games = n_draws + white_wins +black_wins
-    score = -1*black_wins +1* white_wins + 0.5*n_draws
+    white_score = 1* white_wins + 0.5*n_draws
+    black_score = 1*black_wins + 0.5*n_draws
+    score = max(white_score,black_score)
     elo_diff = round(-400*math.log(1/(score/total_games)-1)/math.log(10),0)
-    return elo_diff
+    if white_score >= black_score:
+        return elo_diff
+    else:
+        return -elo_diff
 
 def get_fen_as_tensor(fen):
     pytorch = True
