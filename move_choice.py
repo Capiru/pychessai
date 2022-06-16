@@ -115,7 +115,8 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
         if value_agent is None:
             return get_board_evaluation(board),None,positions
         else:
-            return value_agent.get_board_evaluation(board),None,positions
+            eval,policy = value_agent.get_board_evaluation(board)
+            return eval,None,positions
     sorted_list = get_sorted_move_list(board,agent = policy_model)
     if is_player:
         max_eval = -np.inf

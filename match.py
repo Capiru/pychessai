@@ -138,6 +138,15 @@ def expected_result(elo_a, elo_b):
     expect_a = 1.0/(1+10**((elo_b - elo_a)/400))
     return expect_a
 
+def get_elo_diff_from_outcomes(outcomes):
+    n_draws = outcomes[1]
+    white_wins = outcomes[0]
+    black_wins = outcomes[2]
+    total_games = n_draws + white_wins +black_wins
+    score = -1*black_wins +1* white_wins + 0.5*n_draws
+    elo_diff = round(-400*math.log(1/(22.5/25)-1)/math.log(10),0)
+    return elo_diff
+
 def get_fen_as_tensor(fen):
     pytorch = True
     num_pieces = 6
