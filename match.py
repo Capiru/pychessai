@@ -228,7 +228,6 @@ def get_board_as_tensor(board,player_white = True):
             plane += 1
             piece_map = board.pieces(piece,color)
             for pos in piece_map:
-                print(pos)
                 tensor[plane,pos%8,pos//8] = 1
     assert plane == int(len(pieces)*2-1)
 
