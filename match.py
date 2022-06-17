@@ -148,9 +148,9 @@ def get_elo_diff_from_outcomes(outcomes):
     black_score = 1*black_wins + 0.5*n_draws
     score = max(white_score,black_score)
     if white_score == total_games:
-        return np.inf
+        return 400
     elif black_score == total_games:
-        return -np.inf
+        return -400
     elo_diff = round(-400*math.log(1/(score/total_games)-1)/math.log(10),0)
     if white_score >= black_score:
         return elo_diff
@@ -189,6 +189,51 @@ def get_fen_as_tensor(fen):
             file_ += 1
     return tensor
 
+def get_board_as_tensor(board,player_white = True):
+    num_pieces = 6
+    num_players = 2
+    board_size = 8
+    real_planes = 7 ## 4 castling 1 black or white 
+    attacking_planes = 1
+    total_num_planes = num_pieces*num_players + real_planes
+
+    pytorch = True
+    if pytorch:
+        input_tensor_size = (total_num_planes,board_size,board_size)
+    else:
+        input_tensor_size = (board_size,board_size,total_num_planes)
+    tensor = torch.zeros(input_tensor_size)
+    
+    if board.turn == ch.WHITE:
+        white = True
+    else:
+        white = False
+        tensor[12,:,:] = 1
+    pieces = [ch.PAWN,ch.KNIGHT,ch.BISHOP,ch.ROOK,ch.QUEEN,ch.KING]
+    if player_white:
+        colors = [ch.WHITE,ch.BLACK]
+    else:
+        colors = [ch.BLACK,ch.WHITE]
+    num_before_draw = board.halfmove_clock
+    tensor[17,num_before_draw%8,(num_before_draw)//8] = 1
+    plane = -1
+    player_color = 0
+    for color in colors:
+        if board.has_kingside_castling_rights(color):
+            tensor[13+player_color*2,:,:] = 1
+        if board.has_queenside_castling_rights(color):
+            tensor[14+player_color*2,:,:] = 1
+        player_color += 1
+        for piece in pieces:
+            plane += 1
+            piece_map = board.pieces(piece,color)
+            for pos in piece_map:
+                print(pos)
+                tensor[plane,pos%8,pos//8] = 1
+    assert plane == int(len(pieces)*2-1)
+
+    return tensor
+
 def decaying_function_cosdecay(l,x):
     return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
 
@@ -207,8 +252,7 @@ def get_match_as_fen_tensor(board,winner):
     target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
     for i in range(match_len):
-        fen=board.board_fen()
-        tensor[i,:,:,:] = get_fen_as_tensor(fen)
+        tensor[i,:,:,:] = get_board_as_tensor(board)
         board.pop()
         if winner is None:
             target_tensor[i] = 0.5
@@ -218,6 +262,13 @@ def get_match_as_fen_tensor(board,winner):
             target_tensor[i] = -decaying_function_cosdecay(match_len,match_len-i)
         
     return [tensor,target_tensor]
+
+fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+board = ch.Board()
+print(board.pieces(ch.PAWN,ch.WHITE))
+print(board.fen())
+print(get_board_as_tensor(board,player_white = True))
+
 
 if __name__ == "__main:__":
     fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
