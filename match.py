@@ -215,7 +215,11 @@ def get_board_as_tensor(board,player_white = True):
     else:
         colors = [ch.BLACK,ch.WHITE]
     num_before_draw = board.halfmove_clock
-    tensor[17,num_before_draw%8,(num_before_draw)//8] = 1
+    try:
+        tensor[17,num_before_draw%8,(num_before_draw)//8] = 1
+    except:
+        print(num_before_draw,num_before_draw%8,num_before_draw//8)
+        raise("ERROR")
     plane = -1
     player_color = 0
     for color in colors:
