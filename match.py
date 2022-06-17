@@ -219,7 +219,6 @@ def get_board_as_tensor(board,player_white = True):
         tensor[17,num_before_draw%8,(num_before_draw)//8] = 1
     except:
         print(num_before_draw,num_before_draw%8,num_before_draw//8)
-        assert False
     plane = -1
     player_color = 0
     for color in colors:
