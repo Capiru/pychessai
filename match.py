@@ -215,7 +215,9 @@ def get_board_as_tensor(board,player_white = True):
     else:
         colors = [ch.BLACK,ch.WHITE]
     num_before_draw = math.floor(board.halfmove_clock/2)
-    tensor[17,num_before_draw%8,(num_before_draw)//8] = 1
+    if num_before_draw >= 64:
+        tensor[17,8,8] = 1
+    tensor[17,num_before_draw%8,((num_before_draw)//8)%8] = 1
     plane = -1
     player_color = 0
     for color in colors:
