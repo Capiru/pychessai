@@ -1,3 +1,4 @@
+from config import CFG
 import chess as ch
 import numpy as np
 import pandas as pd
@@ -187,7 +188,7 @@ def get_fen_as_tensor(fen):
             else:
                 tensor[row,file_,dic_encoder[char]] = 1
             file_ += 1
-    return tensor
+    return tensor.to(CFG.DEVICE)
 
 def get_board_as_tensor(board,player_white = True):
     num_pieces = 6
@@ -233,7 +234,7 @@ def get_board_as_tensor(board,player_white = True):
                 tensor[plane,pos%8,pos//8] = 1
     assert plane == int(len(pieces)*2-1)
 
-    return tensor
+    return tensor.to(CFG.DEVICE)
 
 def decaying_function_cosdecay(l,x):
     return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
@@ -262,7 +263,7 @@ def get_match_as_fen_tensor(board,winner):
         else:
             target_tensor[i] = -decaying_function_cosdecay(match_len,match_len-i)
         
-    return [tensor,target_tensor]
+    return [tensor.to(CFG.DEVICE),target_tensor.to(CFG.DEVICE)]
 
 fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 board = ch.Board()
