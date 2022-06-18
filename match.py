@@ -265,14 +265,15 @@ def get_match_as_fen_tensor(board,winner):
         
     return [tensor.to(CFG.DEVICE),target_tensor.to(CFG.DEVICE)]
 
-fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
-board = ch.Board()
-print(board.pieces(ch.PAWN,ch.WHITE))
-print(board.fen())
-print(get_board_as_tensor(board,player_white = True))
+
 
 
 if __name__ == "__main:__":
     fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
     print(get_fen_as_tensor(fen_test))
     print(fen_start_from_opening())
+    fen_test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+    board = ch.Board()
+    print(board.pieces(ch.PAWN,ch.WHITE))
+    print(board.fen())
+    print(get_board_as_tensor(board,player_white = True))
