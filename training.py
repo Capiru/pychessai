@@ -1,4 +1,5 @@
 import torch
+from config import CFG
 
 def val_value_model(agent,val_loader,optimizer,criterion):
     agent.value_model.eval()

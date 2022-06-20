@@ -82,7 +82,7 @@ class LeelaZeroAgent(object):
         self.board = board
         score,move,positions = minimax_with_pruning_and_policyeval(self.board,self.depth,self.is_white,value_agent=self.value_model)
         self.positions += positions
-        self.eval = score
+        self.eval = score.detach().cpu()
         return [move]
     
 
