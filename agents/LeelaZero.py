@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from match import match, get_fen_as_tensor
+from match import match, get_board_as_tensor
 from move_choice import minimax_with_pruning_and_policyeval
 import shutil
 
