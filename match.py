@@ -65,19 +65,32 @@ def save_tensor(tensor):
             torch.save([positions[i,:,:,:],outcomes[i]],str(time.time())+str(i)+".pt")
         return None
     elif CFG.save_batch_to_device:
+        CFG.count_since_last_val_match+=1
         size = tensor[0].size(dim=0)
-        if CFG.last_index + size > CFG.batch_size:
-            CFG.batch_full = True
-            print(CFG.batch_full)
-            CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
-            CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
-            CFG.last_index = CFG.batch_size
-            
+        if CFG.count_since_last_val_match % CFG.val_every_x_games == 0:
+            ### Save Val Batch
+            if CFG.val_last_index + size > CFG.batch_size:
+                CFG.batch_full = True
+                CFG.memory_batch[2][CFG.val_last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.val_last_index,:,:,:]
+                CFG.memory_batch[3][CFG.val_last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.val_last_index]
+                CFG.val_last_index = 0
+                
+            else:
+                CFG.memory_batch[2][CFG.last_index:CFG.last_index+size,:,:,:] = tensor[0]
+                CFG.memory_batch[3][CFG.last_index:CFG.last_index+size] = tensor[1]
+                CFG.val_last_index += size
         else:
-            print(CFG.last_index,size)
-            CFG.memory_batch[0][CFG.last_index:CFG.last_index+size,:,:,:] = tensor[0]
-            CFG.memory_batch[1][CFG.last_index:CFG.last_index+size] = tensor[1]
-            CFG.last_index += size
+            ### Save training batch
+            if CFG.last_index + size > CFG.batch_size:
+                CFG.batch_full = True
+                CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
+                CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
+                CFG.last_index = 0
+                
+            else:
+                CFG.memory_batch[0][CFG.last_index:CFG.last_index+size,:,:,:] = tensor[0]
+                CFG.memory_batch[1][CFG.last_index:CFG.last_index+size] = tensor[1]
+                CFG.last_index += size
 
 
 def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,

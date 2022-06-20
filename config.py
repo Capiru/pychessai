@@ -20,10 +20,16 @@ class CFG:
 
     save_tensor_to_disk = False
     save_batch_to_device = True
+    validate_match = True
+    val_every_x_games = 3
     if save_batch_to_device:
-        memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1))]
+        memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),
+                        torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1))]
         last_index = 0
+        val_last_index = 0
         batch_full = False
+        count_since_last_val_match = 0
+        
 
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     criterion = nn.MSELoss()
