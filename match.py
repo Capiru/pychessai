@@ -131,7 +131,7 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
                 outcomes[2] += 1
         if progress_bar:
             progress.set_description(str(outcomes)+" is1_white:"+str(int(agent_one.is_white))+"  1:"+str(agent_one.eval) +"  1-pos:"+str(agent_one.positions)+"   2:"+str(agent_two.eval)+"  2-pos:"+str(agent_two.positions))
-        if CFG.batch_full and CFG.save_batch_to_device and save_match_tensor is False:
+        if CFG.batch_full and CFG.save_batch_to_device and save_match_tensor:
             break
     return outcomes
 
