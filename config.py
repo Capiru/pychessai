@@ -18,9 +18,12 @@ class CFG:
     epochs = 10
     batch_size = 2048
 
+    save_tensor_to_disk = False
     save_batch_to_device = True
     if save_batch_to_device:
         memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1))]
+        last_index = 0
+        batch_full = False
 
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     criterion = nn.MSELoss()

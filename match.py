@@ -59,10 +59,23 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
         raise AssertionError
 
 def save_tensor(tensor):
-    positions,outcomes = tensor
-    for i in range(positions.size(dim=0)):
-        torch.save([positions[i,:,:,:],outcomes[i]],str(time.time())+str(i)+".pt")
-    return None
+    if CFG.save_tensor_to_disk:
+        positions,outcomes = tensor
+        for i in range(positions.size(dim=0)):
+            torch.save([positions[i,:,:,:],outcomes[i]],str(time.time())+str(i)+".pt")
+        return None
+    elif CFG.save_batch_to_device:
+        size = tensor[0].size(dim=0)
+        if CFG.last_index + size > CFG.batch_size:
+            CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0]
+            CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1]
+            CFG.last_index = batch_size
+            CFG.batch_full = True
+            print(CFG.batch_full)
+        else:
+            CFG.memory_batch[0][CFG.last_index:CFG.last_index+size,:,:,:] = tensor[0]
+            CFG.memory_batch[1][CFG.last_index:CFG.last_index+size] = tensor[1]
+            CFG.last_index += size
 
 
 def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,
