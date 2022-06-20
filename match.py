@@ -77,8 +77,8 @@ def save_tensor(tensor):
                 CFG.val_last_index = 0
                 
             else:
-                CFG.memory_batch[2][CFG.last_index:CFG.last_index+size,:,:,:] = tensor[0]
-                CFG.memory_batch[3][CFG.last_index:CFG.last_index+size] = tensor[1]
+                CFG.memory_batch[2][CFG.val_last_index:CFG.val_last_index+size,:,:,:] = tensor[0]
+                CFG.memory_batch[3][CFG.val_last_index:CFG.val_last_index+size] = tensor[1]
                 CFG.val_last_index += size
         else:
             ### Save training batch
