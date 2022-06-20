@@ -111,4 +111,5 @@ class LeelaZeroAgent(object):
                 self.input_channel_size,self.filters,self.res_blocks,self.se_channels,self.policy_conv_size)
         state_dict = self.value_model.state_dict()
         new_agent.value_model.load_state_dict(state_dict)
+        new_agent.value_model.to(CFG.DEVICE)
         return new_agent
