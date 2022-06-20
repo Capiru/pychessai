@@ -69,8 +69,8 @@ def save_tensor(tensor):
         if CFG.last_index + size > CFG.batch_size:
             CFG.batch_full = True
             print(CFG.batch_full)
-            CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0]
-            CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1]
+            CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
+            CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
             CFG.last_index = batch_size
             
         else:
