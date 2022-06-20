@@ -15,8 +15,9 @@ class CFG:
     mult_lr = 0.5
 
     weight_decay = 1e-7
-    epochs = 10
-    batch_size = 2048
+    epochs = 20
+    patience = 10
+    batch_size = 4096
 
     save_tensor_to_disk = False
     save_batch_to_device = True
