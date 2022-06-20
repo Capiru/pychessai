@@ -49,7 +49,7 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
                 winner = not (game.outcome().winner ^ is_player_one)
             except:
                 winner = None
-            match_tensor = get_match_as_fen_tensor(game,winner)
+            match_tensor = get_match_as_fen_tensor(game,winner,is_player_one)
             return winner,match_tensor
         else:
             return game.outcome().winner
@@ -108,10 +108,10 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
                 outcome = match(agent_one,agent_two,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,save_tensor=False,is_player_one=is_player_one)
         else:
             if save_match_tensor:
-                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,is_player_one=is_player_one)
+                outcome,tensor = match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,is_player_one=not is_player_one)
                 save_tensor(tensor)
             else:
-                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,save_tensor=False,is_player_one=is_player_one)
+                outcome =  match(agent_two,agent_one,start_from_opening=start_from_opening,start_from_random=start_from_random,random_start_depth =random_start_depth,save_tensor=False,is_player_one=not is_player_one)
         if outcome is None:
             #draw
             outcomes[1] += 1
@@ -130,7 +130,7 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
                 #black win
                 outcomes[2] += 1
         if progress_bar:
-            progress.set_description(str(outcomes)+" is1_white:"+str(int(agent_one.is_white))+"  1:"+str(agent_one.eval) +"  1-pos:"+str(agent_one.positions)+"   2:"+str(agent_two.eval)+"  2-pos:"+str(agent_two.positions))
+            progress.set_description(str(outcomes)+ f" {get_elo_diff_from_outcomes(outcomes)}"+" is1_white:"+str(int(agent_one.is_white))+"  1:"+str(agent_one.eval) +"  1-pos:"+str(agent_one.positions)+"   2:"+str(agent_two.eval)+"  2-pos:"+str(agent_two.positions))
         if CFG.batch_full and CFG.save_batch_to_device and save_match_tensor:
             break
     return outcomes
@@ -267,7 +267,7 @@ def get_board_as_tensor(board,player_white = True):
 def decaying_function_cosdecay(l,x):
     return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
 
-def get_match_as_fen_tensor(board,winner):
+def get_match_as_fen_tensor(board,winner,player_white = True):
     pytorch = True
     match_len = len(board.move_stack)
     num_pieces = 6
@@ -282,11 +282,11 @@ def get_match_as_fen_tensor(board,winner):
     target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
     for i in range(match_len):
-        tensor[i,:,:,:] = get_board_as_tensor(board)
+        tensor[i,:,:,:] = get_board_as_tensor(board,player_white)
         board.pop()
         if winner is None:
-            target_tensor[i] = 0.5
-        elif winner:
+            target_tensor[i] = -0.2
+        elif not (winner ^ player_white):
             target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i)
         else:
             target_tensor[i] = -decaying_function_cosdecay(match_len,match_len-i)
