@@ -7,7 +7,7 @@ class CFG:
     n_pieces = 6
     real_planes = 7
     attacking_planes = 0
-    n_planes = n_players + n_pieces + real_planes + attacking_planes
+    n_planes = n_players * n_pieces + real_planes + attacking_planes
 
 
     lr = 0.0005
