@@ -76,7 +76,7 @@ class LeelaZeroAgent(object):
         self.trained_epochs = 0
         self.elo_diff_from_random = 0
         self.input_channel_size,self.filters,self.res_blocks,self.se_channels,self.policy_conv_size = input_channel_size,filters,res_blocks,se_channels,policy_conv_size
-        self.value_model = LeelaZero(input_channel_size=self.input_channel_size,filters=self.filters,res_blocks=self.res_blocks,se_channels=self.se_channels,policy_conv_size=self.policy_conv_sizee)
+        self.value_model = LeelaZero(input_channel_size=self.input_channel_size,filters=self.filters,res_blocks=self.res_blocks,se_channels=self.se_channels,policy_conv_size=self.policy_conv_size)
 
     def choose_move(self,board):
         self.board = board
