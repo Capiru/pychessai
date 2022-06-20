@@ -71,7 +71,7 @@ def save_tensor(tensor):
             print(CFG.batch_full)
             CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
             CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
-            CFG.last_index = batch_size
+            CFG.last_index = CFG.batch_size
             
         else:
             print(CFG.last_index,size)
@@ -119,7 +119,8 @@ def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening 
                 outcomes[2] += 1
         if progress_bar:
             progress.set_description(str(outcomes)+" is1_white:"+str(int(agent_one.is_white))+"  1:"+str(agent_one.eval) +"  1-pos:"+str(agent_one.positions)+"   2:"+str(agent_two.eval)+"  2-pos:"+str(agent_two.positions))
-
+        if CFG.batch_full and CFG.save_batch_to_device:
+            break
     return outcomes
 
 def update_elo_agents(white,black,outcome):
