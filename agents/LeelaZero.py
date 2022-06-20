@@ -50,8 +50,6 @@ class LeelaZero(nn.Module):
         value = self.fc_head(value)
         value = torch.tanh(self.value_head(value))
         return value,policy
-
-    
     
     def get_board_evaluation(self,board):
         input_tensor = get_board_as_tensor(board)
@@ -60,7 +58,8 @@ class LeelaZero(nn.Module):
         return self.forward(torch.reshape(input_tensor,[1,c,w,h]))
 
 class LeelaZeroAgent(object):
-    def __init__(self,depth = 3,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False):
+    def __init__(self,depth = 3,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False,
+                input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 80):
         super().__init__()
         self.elo = 400
         self.depth = depth
@@ -68,7 +67,6 @@ class LeelaZeroAgent(object):
         self.batch_size = batch_size
         self.epochs = epochs
         self.is_white = is_white
-        self.value_model = LeelaZero()
         self.training = training
         self.positions = 0
         self.print_batch_interval = 4
@@ -76,6 +74,8 @@ class LeelaZeroAgent(object):
         self.best_val_loss = np.inf
         self.trained_epochs = 0
         self.elo_diff_from_random = 0
+        self.input_channel_size,self.filters,self.res_blocks,self.se_channels,self.policy_conv_size = input_channel_size,filters,res_blocks,se_channels,policy_conv_size
+        self.value_model = LeelaZero(input_channel_size=self.input_channel_size,filters=self.filters,res_blocks=self.res_blocks,se_channels=self.se_channels,policy_conv_size=self.policy_conv_sizee)
 
     def choose_move(self,board):
         self.board = board
