@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from match import match, get_board_as_tensor
 from move_choice import minimax_with_pruning_and_policyeval
 import shutil
+from config import CFG
 
 class LeelaZero(nn.Module):
     def __init__(self,input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 80):
