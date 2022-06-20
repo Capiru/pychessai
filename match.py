@@ -68,6 +68,7 @@ def save_tensor(tensor):
         CFG.count_since_last_val_match+=1
         size = tensor[0].size(dim=0)
         if CFG.count_since_last_val_match % CFG.val_every_x_games == 0:
+            print("IM HERE")
             ### Save Val Batch
             if CFG.val_last_index + size > CFG.batch_size:
                 CFG.memory_batch[2][CFG.val_last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.val_last_index,:,:,:]
