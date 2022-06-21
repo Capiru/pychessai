@@ -9,7 +9,7 @@ import shutil
 from config import CFG
 
 class LeelaZero(nn.Module):
-    def __init__(self,input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 80,policy_output_size = 4672):
+    def __init__(self,input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 73,policy_output_size = 4672):
         super().__init__()
         self.input_channel_size = input_channel_size
         self.filters = filters
