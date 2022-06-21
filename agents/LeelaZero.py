@@ -9,13 +9,14 @@ import shutil
 from config import CFG
 
 class LeelaZero(nn.Module):
-    def __init__(self,input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 80):
+    def __init__(self,input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 80,policy_output_size = 4672):
         super().__init__()
         self.input_channel_size = input_channel_size
         self.filters = filters
         self.res_blocks = res_blocks
         self.se_channels = se_channels
         self.policy_conv_size = policy_conv_size
+        self.policy_output_size = policy_output_size
         self.pre_conv = nn.Conv2d(self.input_channel_size, self.filters, 3,padding = "same")
         self.conv1 = nn.Conv2d(self.filters, self.filters, 3,padding = "same")
         self.conv2 = nn.Conv2d(self.filters, self.filters, 3,padding = "same")
@@ -25,7 +26,7 @@ class LeelaZero(nn.Module):
         self.fc_head = nn.Linear(self.filters*64,128)
         self.value_head = nn.Linear(128, 1)
         self.policy_conv1 = nn.Conv2d(self.filters, self.policy_conv_size, 3,padding = "same")
-        self.policy_fc = nn.Linear(self.policy_conv_size*64, 1858)
+        self.policy_fc = nn.Linear(self.policy_conv_size*64, self.policy_output_size)
 
     def forward(self, x):
         x = self.pre_conv(x)
@@ -61,7 +62,7 @@ class LeelaZero(nn.Module):
 
 class LeelaZeroAgent(object):
     def __init__(self,depth = 3,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False,
-                input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 80):
+                input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 73,policy_output_size = 4672):
         super().__init__()
         self.elo = 400
         self.depth = depth
@@ -70,6 +71,7 @@ class LeelaZeroAgent(object):
         self.epochs = epochs
         self.is_white = is_white
         self.training = training
+        self.policy_output_size = policy_output_size
         self.positions = 0
         self.print_batch_interval = 4
         self.eval = 0
@@ -77,7 +79,8 @@ class LeelaZeroAgent(object):
         self.trained_epochs = 0
         self.elo_diff_from_random = 0
         self.input_channel_size,self.filters,self.res_blocks,self.se_channels,self.policy_conv_size = input_channel_size,filters,res_blocks,se_channels,policy_conv_size
-        self.value_model = LeelaZero(input_channel_size=self.input_channel_size,filters=self.filters,res_blocks=self.res_blocks,se_channels=self.se_channels,policy_conv_size=self.policy_conv_size)
+        self.value_model = LeelaZero(input_channel_size=self.input_channel_size,filters=self.filters,res_blocks=self.res_blocks,se_channels=self.se_channels,
+                                    policy_conv_size=self.policy_conv_size,policy_output_size=self.policy_output_size)
 
     def choose_move(self,board):
         self.board = board
