@@ -31,6 +31,9 @@ class CFG:
         batch_full = False
         count_since_last_val_match = 0
         
+    WIN_VALUE = 1
+    LOSS_VALUE = -1
+    DRAW_VALUE = -0.2
 
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     criterion = nn.MSELoss()
