@@ -356,7 +356,7 @@ class MonteCarloSearchNode:
     def save_to_memory(self):
         input_state = self.state
         policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
-        CFG.memory_batch[2][CFG.last_policy_index,:] = policy_label
+        CFG.memory_batch[2][CFG.last_policy_index%CFG.batch_size,:] = policy_label
         CFG.last_policy_index += 1
 
     def search(self,n_simulations):
