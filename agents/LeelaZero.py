@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from match import match, get_board_as_tensor
 from move_choice import minimax_with_pruning_and_policyeval
-from search import MonteCarloSearchNode
+from search.search import MonteCarloSearchNode
 import shutil
 from config import CFG
 
