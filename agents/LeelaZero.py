@@ -113,7 +113,7 @@ class LeelaZeroAgent(object):
             shutil.copy(model_name,drive_location)
 
     def get_deepcopy(self):
-        new_agent = LeelaZeroAgent(self.depth,self.board,self.is_white,self.batch_size,self.epochs,self.training,
+        new_agent = LeelaZeroAgent(self.n_simulations,self.board,self.is_white,self.batch_size,self.epochs,self.training,
                 self.input_channel_size,self.filters,self.res_blocks,self.se_channels,self.policy_conv_size)
         state_dict = self.value_model.state_dict()
         new_agent.value_model.load_state_dict(state_dict)
