@@ -243,7 +243,7 @@ class NegaMaxObject(object):
             return min_score,best_move,all_pos,all_analysed_pos
 
 class MonteCarloSearchNode:
-    def __init__(self,agent,prior,player_white,board,state = None,node_value = None,parent = None,parent_move = None,policy_priors=None,legal_actions = None):
+    def __init__(self,agent,prior,player_white,board,state = None,node_value = None,parent = None,parent_move = None,policy_priors=None,legal_actions = None,is_terminal_node = False):
         self.agent = agent
         self.prior = prior
         self.player_white = player_white
@@ -270,6 +270,7 @@ class MonteCarloSearchNode:
         for i in range(len(self.legal_actions)):
             self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
         self.choose_move = self.choose_move_random
+        self.is_terminal_node = is_terminal_node
 
     def fill_untried_actions(self):
         self.untried_actions = copy.deepcopy(self.legal_actions)
@@ -284,17 +285,20 @@ class MonteCarloSearchNode:
     def ucb_score(self):
         return self.value_score() + self.prior_score()
 
-    def get_board_reward(self,board,agent):
-        if board.is_game_over():
-            if board.is_checkmate():
-                if not board.winner() ^ self.player_white:
+    def get_board_reward(self):
+        if self.board.is_game_over():
+            if self.board.is_checkmate():
+                if not self.board.winner() ^ self.player_white:
+                    self.is_terminal_node = True
                     return CFG.WIN_VALUE,None
                 else:
+                    self.is_terminal_node = True
                     return CFG.LOSS_VALUE,None
             else:
+                self.is_terminal_node = True
                 return CFG.DRAW_VALUE,None
         else:
-            return agent.value_model.get_board_evaluation(board)
+            return self.agent.value_model.get_board_evaluation(self.board)
     
     def backpropagate(self,result):
         self.visit_count += 1
@@ -323,8 +327,8 @@ class MonteCarloSearchNode:
     def get_move_from_policy(self):
         legal_moves = list(self.board.legal_moves)
         reduced_actions = torch.zeros((len(legal_moves)))
-        state = get_board_as_tensor(self.board,self.player_white)
-        score,policy = self.agent.value_model.get_board_evaluation(self.board)
+        #state = get_board_as_tensor(self.board,self.player_white)
+        score,policy = self.get_board_reward()
         legal_moves_mask,move_list = map_moves_to_policy(legal_moves,self.board,flatten = True)
         action_space = torch.mul(torch.flatten(policy),legal_moves_mask)
         for i in range(len(legal_moves)):
@@ -336,14 +340,18 @@ class MonteCarloSearchNode:
     def expand(self,agent,move,prior):
         #### needs to change to select based on probability or UCB
         next_state = self.board.push(move)
-        score,priors,legal_moves = self.get_move_from_policy()
-        if self.board.turn ^ self.player_white:
-            score = -score
-        child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
-                                          node_value = score,policy_priors = priors,legal_actions = legal_moves)
-        self.children[move] = child_node
-        self.board.pop()
-        return child_node
+        if board.is_game_over():
+            score,priors,legal_moves = self.get_move_from_policy()
+            if self.board.turn ^ self.player_white:
+                score = -score
+            child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
+                                            node_value = score,policy_priors = priors,legal_actions = legal_moves,is_terminal_node=self.is_terminal_node)
+            self.children[move] = child_node
+            self.is_terminal_node = False
+            self.board.pop()
+            return child_node
+        else:
+            self.board.pop()
 
     def choose_move_random(self):
         index = np.random.choice([i for i in range(len(self.legal_actions))],size=1,p=self.policy_priors.detach().numpy())[0]
@@ -375,7 +383,8 @@ class MonteCarloSearchNode:
                     current_node.last_child_move = move
                     try:
                         children_node = current_node.children[move]
-                        current_node = children_node
+                        if not children_node.is_terminal_node:
+                            current_node = children_node
                     except:
                         children_node = current_node.expand(self.agent,move,prior)
                         found_unexplored_node = True
