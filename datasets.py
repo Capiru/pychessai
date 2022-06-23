@@ -36,8 +36,8 @@ class BatchMemoryDataset(Dataset):
         if length is None:
             self.tensor = tensor
         else:
-            a,b = tensor
-            tensor = [a[0:length,:,:,:],b[0:length]]
+            a,b,c = tensor
+            tensor = [a[0:length,:,:,:],b[0:length],c[0:length,:]]
             self.tensor = tensor
         self.length = length
 
@@ -45,4 +45,4 @@ class BatchMemoryDataset(Dataset):
         return self.tensor[0].size(dim=0)
 
     def __getitem__(self,idx):
-        return [self.tensor[0][idx,:,:,:],self.tensor[1][idx]]
+        return [self.tensor[0][idx,:,:,:],self.tensor[1][idx],self.tensor[2][idx]]
