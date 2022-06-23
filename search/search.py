@@ -379,9 +379,10 @@ class MonteCarloSearchNode:
                         break
                 children_node.backpropagate(children_node.node_value)
             ### Add the best_child to the memory batch
+            best_child_score, best_child = self.find_best_child()
             if self.agent.training:
                 self.save_to_memory()
-            return self.find_best_child()
+            return best_child_score, best_child
         except:
             print(current_node.legal_actions)
             print(current_node.board,"\n",current_node.board.move_stack)
