@@ -373,7 +373,7 @@ class MonteCarloSearchNode:
                         children_node = current_node.children[move]
                         current_node = children_node
                     except:
-                        children_node = current_node.expand(agent_three,move,prior)
+                        children_node = current_node.expand(self.agent,move,prior)
                         found_unexplored_node = True
                         break
                 children_node.backpropagate(children_node.node_value)
