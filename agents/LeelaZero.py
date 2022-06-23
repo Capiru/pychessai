@@ -87,7 +87,7 @@ class LeelaZeroAgent(object):
         self.board = board
         node = MonteCarloSearchNode(self,None,self.is_white,self.board)
         score,move = node.search(n_simulations = self.n_simulations)
-        self.positions += positions
+        self.positions += self.n_simulations
         self.eval = score.detach().cpu()
         return [move]
     
