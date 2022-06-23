@@ -62,7 +62,7 @@ class LeelaZero(nn.Module):
         return self.forward(torch.reshape(input_tensor,[1,c,w,h]))
 
 class LeelaZeroAgent(object):
-    def __init__(self,n_simulations = 30,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False,
+    def __init__(self,n_simulations = 30,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = True,
                 input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 73,policy_output_size = 4672):
         super().__init__()
         self.elo = 400
