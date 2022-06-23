@@ -31,6 +31,7 @@ class CFG:
         memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size)),
                         torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size))]
         last_index = 0
+        last_policy_index = 0
         val_last_index = 0
         batch_full = False
         count_since_last_val_match = 0
