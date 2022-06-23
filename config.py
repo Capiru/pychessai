@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 
 class CFG:
+    DEBUG = False
+
     board_size = 8 ## total length and height, total squares = 64
     n_players = 2
     n_pieces = 6
@@ -19,13 +21,15 @@ class CFG:
     patience = 10
     batch_size = 4096
 
+    policy_output_size = 4672
+
     save_tensor_to_disk = False
     save_batch_to_device = True
     validate_match = True
     val_every_x_games = 3
     if save_batch_to_device:
-        memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),
-                        torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1))]
+        memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size)),
+                        torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch-zeros((batch_size,policy_output_size))]
         last_index = 0
         val_last_index = 0
         batch_full = False
