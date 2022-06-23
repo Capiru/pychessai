@@ -2,6 +2,7 @@ import numpy as np
 import chess as ch
 from move_choice import *
 import torch
+import torch.nn.functional as F
 from match import get_board_as_tensor
 from policy import map_moves_to_policy
 
