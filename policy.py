@@ -1,5 +1,6 @@
 import torch
 import chess as ch
+from config import CFG
 
 def map_moves_to_policy(legal_moves,board,flatten = False):
     ### Returns a vector same sized as policy with all legal moves, with 1 on possible legal moves
