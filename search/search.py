@@ -234,3 +234,150 @@ class NegaMaxObject(object):
             return max_score,best_move,all_pos,all_analysed_pos
         else:
             return min_score,best_move,all_pos,all_analysed_pos
+
+class MonteCarloSearchNode:
+    def __init__(self,agent,prior,player_white,board,state = None,node_value = None,parent = None,parent_move = None,policy_priors=None,legal_actions = None):
+        self.agent = agent
+        self.prior = prior
+        self.player_white = player_white
+        self.board = board.copy()
+
+        self.children = {}
+        self.parent = parent
+        self.parent_move = parent_move
+        self.visit_count = 0
+        self.value_sum = 0
+        self.state = state
+        self.prior = prior
+        if legal_actions is None:
+            self.node_value,self.policy_priors,self.legal_actions = self.get_move_from_policy()
+        else:
+            self.node_value = node_value
+            self.legal_actions = legal_actions
+            self.policy_priors = policy_priors
+        self.untried_actions = copy.deepcopy(self.legal_actions)
+        self.last_child_move = None
+        self.best_child_score = -np.inf
+        self.best_child = None
+        self.current_ucb_scores = {}
+        for i in range(len(self.legal_actions)):
+            self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
+        self.choose_move = self.choose_move_random
+
+    def fill_untried_actions(self):
+        self.untried_actions = copy.deepcopy(self.legal_actions)
+        return self.untried_actions
+
+    def prior_score(self):
+        return self.prior * math.sqrt(self.parent.visit_count) / (self.visit_count + 1)
+
+    def value_score(self):
+        return self.value_sum / self.visit_count
+
+    def ucb_score(self):
+        return self.value_score() + self.prior_score()
+
+    def get_board_reward(self,board,agent):
+        if board.is_game_over():
+            if board.is_checkmate():
+                if not board.winner() ^ self.player_white:
+                    return CFG.WIN_VALUE,None
+                else:
+                    return CFG.LOSS_VALUE,None
+            else:
+                return CFG.DRAW_VALUE,None
+        else:
+            return agent.value_model.get_board_evaluation(board)
+    
+    def backpropagate(self,result):
+        self.visit_count += 1
+        self.value_sum += result
+        if self.parent:
+            self.parent.backpropagate(self.value_score())
+            self.parent.update_ucb_scores(self.parent)
+        else:
+            self.update_ucb_scores(node=self)
+
+    def update_ucb_scores(self,node):
+        child_ucb = node.children[node.last_child_move].ucb_score()
+        node.current_ucb_scores[node.last_child_move] = child_ucb
+
+    def find_best_child(self):
+        for k,v in self.current_ucb_scores.items():
+            if v > self.best_child_score:
+                self.best_child_score = v
+                self.best_child = k
+
+        return self.best_child_score,self.best_child
+
+    def is_fully_expanded(self):
+        return len(self.untried_actions) == 0
+
+    def get_move_from_policy(self):
+        legal_moves = list(self.board.legal_moves)
+        reduced_actions = torch.zeros((len(legal_moves)))
+        state = get_board_as_tensor(self.board,self.player_white)
+        score,policy = self.agent.value_model.get_board_evaluation(self.board)
+        legal_moves_mask,move_list = map_moves_to_policy(legal_moves,self.board,flatten = True)
+        action_space = torch.mul(torch.flatten(policy),legal_moves_mask)
+        for i in range(len(legal_moves)):
+            reduced_actions[i] = action_space[move_list[i]]
+        priors = F.softmax(reduced_actions,dim = 0)
+        sorted_index = torch.argsort(priors,descending = True)
+        return score,priors[sorted_index],[legal_moves[i] for i in sorted_index]
+
+    def expand(self,agent,move,prior):
+        #### needs to change to select based on probability or UCB
+        next_state = self.board.push(move)
+        score,priors,legal_moves = self.get_move_from_policy()
+        if self.board.turn ^ self.player_white:
+            score = -score
+        child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
+                                          node_value = score,policy_priors = priors,legal_actions = legal_moves)
+        self.children[move] = child_node
+        self.board.pop()
+        return child_node
+
+    def choose_move_random(self):
+        index = np.random.choice([i for i in range(len(self.legal_actions))],size=1,p=self.policy_priors.detach().numpy())[0]
+        return self.legal_actions[index],self.policy_priors[index]
+
+    def choose_best_ucb(self):
+        score,move = self.find_best_child()
+        return move
+
+    def save_to_memory(self):
+        input_state = self.state
+        policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
+        CFG.memory_batch[2][CFG.last_policy_index,:] = policy_label
+        CFG.last_policy_index += 1
+
+    def search(self,n_simulations):
+        try:
+            for i in range(n_simulations):
+                current_node = self
+                found_unexplored_node = False
+                while not found_unexplored_node:
+                    ##if current_node.is_fully_expanded():
+                    ##    current_node.fill_untried_actions()
+                    ##    move = current_node.choose_move()
+                    ##else:
+                    move,prior = current_node.choose_move() ## find move change this
+                    current_node.last_child_move = move
+                    try:
+                        children_node = current_node.children[move]
+                        current_node = children_node
+                    except:
+                        children_node = current_node.expand(agent_three,move,prior)
+                        found_unexplored_node = True
+                        break
+                children_node.backpropagate(children_node.node_value)
+            ### Add the best_child to the memory batch
+            if self.agent.training:
+                self.save_to_memory()
+            return self.find_best_child()
+        except:
+            print(current_node.legal_actions)
+            print(current_node.board,"\n",current_node.board.move_stack)
+            print(children_node.board,"\n")
+            assert False

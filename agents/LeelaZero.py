@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from match import match, get_board_as_tensor
 from move_choice import minimax_with_pruning_and_policyeval
+from search import MonteCarloSearchNode
 import shutil
 from config import CFG
 
@@ -61,11 +62,11 @@ class LeelaZero(nn.Module):
         return self.forward(torch.reshape(input_tensor,[1,c,w,h]))
 
 class LeelaZeroAgent(object):
-    def __init__(self,depth = 3,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False,
+    def __init__(self,n_simulations = 30,board = ch.Board(),is_white = True,batch_size = 4,epochs = 3,training = False,
                 input_channel_size=19,filters = 48,res_blocks = 6,se_channels = 0,policy_conv_size = 73,policy_output_size = 4672):
         super().__init__()
         self.elo = 400
-        self.depth = depth
+        self.n_simulations = n_simulations
         self.board = board
         self.batch_size = batch_size
         self.epochs = epochs
@@ -84,7 +85,8 @@ class LeelaZeroAgent(object):
 
     def choose_move(self,board):
         self.board = board
-        score,move,positions = minimax_with_pruning_and_policyeval(self.board,self.depth,self.is_white,value_agent=self.value_model)
+        node = MonteCarloSearchNode(self,None,self.is_white,self.board)
+        score,move = node.search(n_simulations = self.n_simulations)
         self.positions += positions
         self.eval = score.detach().cpu()
         return [move]
