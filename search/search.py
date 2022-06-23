@@ -2,6 +2,8 @@ import numpy as np
 import chess as ch
 from move_choice import *
 import torch
+from match import get_board_as_tensor
+from policy import map_moves_to_policy
 
 class AlphaBetaPruning(object):
     def __init__(self,depth = 3,eval_fun = get_board_evaluation,policy_fun=get_sorted_move_list,pruning = False,transposition_table = False,time_based = False,time_limit = 1,capture_eval_correction = False):
