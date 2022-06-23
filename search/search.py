@@ -256,7 +256,9 @@ class MonteCarloSearchNode:
         self.value_sum = 0
         self.state = state
         self.prior = prior
-        if legal_actions is None:
+        self.is_terminal_node = is_terminal_node
+        self.current_ucb_scores = {}
+        if legal_actions is None and not is_terminal_node:
             self.node_value,self.policy_priors,self.legal_actions = self.get_move_from_policy()
         else:
             self.node_value = node_value
@@ -266,11 +268,11 @@ class MonteCarloSearchNode:
         self.last_child_move = None
         self.best_child_score = -np.inf
         self.best_child = None
-        self.current_ucb_scores = {}
-        for i in range(len(self.legal_actions)):
-            self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
+        if not is_terminal_node:
+            for i in range(len(self.legal_actions)):
+                self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
         self.choose_move = self.choose_move_random
-        self.is_terminal_node = is_terminal_node
+        
 
     def fill_untried_actions(self):
         self.untried_actions = copy.deepcopy(self.legal_actions)
@@ -288,7 +290,7 @@ class MonteCarloSearchNode:
     def get_board_reward(self):
         if self.board.is_game_over():
             if self.board.is_checkmate():
-                if not self.board.winner() ^ self.player_white:
+                if not self.board.outcome().winner ^ self.player_white:
                     self.is_terminal_node = True
                     return CFG.WIN_VALUE,None
                 else:
@@ -298,6 +300,7 @@ class MonteCarloSearchNode:
                 self.is_terminal_node = True
                 return CFG.DRAW_VALUE,None
         else:
+            self.is_terminal_node = False
             return self.agent.value_model.get_board_evaluation(self.board)
     
     def backpropagate(self,result):
@@ -329,29 +332,29 @@ class MonteCarloSearchNode:
         reduced_actions = torch.zeros((len(legal_moves)))
         #state = get_board_as_tensor(self.board,self.player_white)
         score,policy = self.get_board_reward()
-        legal_moves_mask,move_list = map_moves_to_policy(legal_moves,self.board,flatten = True)
-        action_space = torch.mul(torch.flatten(policy),legal_moves_mask)
-        for i in range(len(legal_moves)):
-            reduced_actions[i] = action_space[move_list[i]]
-        priors = F.softmax(reduced_actions,dim = 0)
-        sorted_index = torch.argsort(priors,descending = True)
-        return score,priors[sorted_index],[legal_moves[i] for i in sorted_index]
+        if not self.is_terminal_node:
+            legal_moves_mask,move_list = map_moves_to_policy(legal_moves,self.board,flatten = True)
+            action_space = torch.mul(torch.flatten(policy),legal_moves_mask)
+            for i in range(len(legal_moves)):
+                reduced_actions[i] = action_space[move_list[i]]
+            priors = F.softmax(reduced_actions,dim = 0)
+            sorted_index = torch.argsort(priors,descending = True)
+            return score,priors[sorted_index],[legal_moves[i] for i in sorted_index]
+        else:
+            return score,None,None
 
     def expand(self,agent,move,prior):
         #### needs to change to select based on probability or UCB
         next_state = self.board.push(move)
-        if board.is_game_over():
-            score,priors,legal_moves = self.get_move_from_policy()
-            if self.board.turn ^ self.player_white:
-                score = -score
-            child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
-                                            node_value = score,policy_priors = priors,legal_actions = legal_moves,is_terminal_node=self.is_terminal_node)
-            self.children[move] = child_node
-            self.is_terminal_node = False
-            self.board.pop()
-            return child_node
-        else:
-            self.board.pop()
+        score,priors,legal_moves = self.get_move_from_policy()
+        if not self.board.turn ^ self.player_white:
+            score = -score
+        child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
+                                        node_value = score,policy_priors = priors,legal_actions = legal_moves,is_terminal_node=self.is_terminal_node)
+        self.children[move] = child_node
+        self.is_terminal_node = False
+        self.board.pop()
+        return child_node
 
     def choose_move_random(self):
         index = np.random.choice([i for i in range(len(self.legal_actions))],size=1,p=self.policy_priors.detach().numpy())[0]
