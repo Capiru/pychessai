@@ -372,12 +372,12 @@ class MonteCarloSearchNode:
             CFG.last_policy_index += 1
             if CFG.last_policy_index%CFG.batch_size == 0:
                 CFG.last_policy_index = 0
-        else:
+        # else:
             
-            CFG.memory_batch[5][CFG.val_last_policy_index,:] = policy_label
-            CFG.val_last_policy_index += 1
-            if CFG.val_last_policy_index%CFG.batch_size == 0:
-                CFG.val_last_policy_index = 0
+        #     CFG.memory_batch[5][CFG.val_last_policy_index,:] = policy_label
+        #     CFG.val_last_policy_index += 1
+        #     if CFG.val_last_policy_index%CFG.batch_size == 0:
+        #         CFG.val_last_policy_index = 0
 
     def search(self,n_simulations):
         try:
