@@ -334,7 +334,7 @@ class MonteCarloSearchNode:
         score,policy = self.get_board_reward()
         if not self.is_terminal_node:
             legal_moves_mask,move_list = map_moves_to_policy(legal_moves,self.board,flatten = True)
-            action_space = torch.mul(torch.flatten(policy),legal_moves_mask)
+            action_space = torch.mul(torch.flatten(policy),legal_moves_mask.to(CFG.DEVICE))
             for i in range(len(legal_moves)):
                 reduced_actions[i] = action_space[move_list[i]]
             priors = F.softmax(reduced_actions,dim = 0)
