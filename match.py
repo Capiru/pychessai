@@ -83,7 +83,8 @@ def save_tensor(tensor):
         else:
             if CFG.TEST:
                 try:
-                    assert CFG.last_index == CFG.last_policy_index-size
+                    if not CFG.last_index + size > CFG.batch_size:
+                        assert CFG.last_index == CFG.last_policy_index-size
                 except:
                     print(CFG.last_index,CFG.last_policy_index,size)
                     assert False
