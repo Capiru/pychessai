@@ -82,7 +82,11 @@ def save_tensor(tensor):
                 CFG.val_last_index += size
         else:
             if CFG.TEST:
-                assert CFG.last_index == CFG.last_policy_index-size
+                try:
+                    assert CFG.last_index == CFG.last_policy_index-size
+                except:
+                    print(CFG.last_index,CFG.last_policy_index,size)
+                    assert False
             ### Save training batch
             if CFG.last_index + size > CFG.batch_size:
                 CFG.batch_full = True
