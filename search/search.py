@@ -365,8 +365,8 @@ class MonteCarloSearchNode:
         return move
 
     def save_to_memory(self):
-        #policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
-        policy_label,_ = map_moves_to_policy(self.legal_actions,self.board,flatten = True,dic = self.current_ucb_scores)
+        policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
+        #policy_label,_ = map_moves_to_policy(self.legal_actions,self.board,flatten = True,dic = self.current_ucb_scores)
         if not (CFG.count_since_last_val_match + 1) % CFG.val_every_x_games == 0:
             CFG.memory_batch[2][CFG.last_policy_index,:] = policy_label
             CFG.last_policy_index += 1
