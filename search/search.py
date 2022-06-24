@@ -365,13 +365,19 @@ class MonteCarloSearchNode:
         return move
 
     def save_to_memory(self):
+        #policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
+        policy_label,_ = map_moves_to_policy(self.legal_actions,self.board,flatten = True,dic = self.current_ucb_scores)
         if not (CFG.count_since_last_val_match + 1) % CFG.val_every_x_games == 0:
-            input_state = self.state
-            policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
             CFG.memory_batch[2][CFG.last_policy_index,:] = policy_label
             CFG.last_policy_index += 1
             if CFG.last_policy_index%CFG.batch_size == 0:
                 CFG.last_policy_index = 0
+        else:
+            
+            CFG.memory_batch[5][CFG.val_last_policy_index,:] = policy_label
+            CFG.val_last_policy_index += 1
+            if CFG.val_last_policy_index%CFG.batch_size == 0:
+                CFG.val_last_policy_index = 0
 
     def search(self,n_simulations):
         try:
