@@ -19,7 +19,7 @@ def map_moves_to_policy(legal_moves,board,flatten = False,dic = None):
         else:
             plane_no = 0
             plane_no += get_plane_queen_moves(initial_square,to_square)
-        if dic is None:
+        if dic is not None:
             vector[plane_no,initial_square%8,((initial_square)//8)%8] = dic[move]
         else:
             vector[plane_no,initial_square%8,((initial_square)//8)%8] = 1
