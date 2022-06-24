@@ -412,8 +412,9 @@ class MonteCarloSearchNode:
             if self.agent.training and CFG.save_batch_to_device:
                 self.save_to_memory()
             return best_child_score, best_child
-        except:
+        except Exception as e:
             print(current_node.legal_actions)
             print(current_node.board,"\n",current_node.board.move_stack)
             print(children_node.board,"\n")
-            assert False
+            print(e)
+            raise BaseException("Error in search")
