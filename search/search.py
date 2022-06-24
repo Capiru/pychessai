@@ -403,7 +403,7 @@ class MonteCarloSearchNode:
                 children_node.backpropagate(children_node.node_value)
             ### Add the best_child to the memory batch
             best_child_score, best_child = self.find_best_child()
-            if self.agent.training and CFG.save_batch_to_memory:
+            if self.agent.training and CFG.save_batch_to_device:
                 self.save_to_memory()
             return best_child_score, best_child
         except:
