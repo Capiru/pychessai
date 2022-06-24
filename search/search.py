@@ -377,6 +377,7 @@ class MonteCarloSearchNode:
             for i in range(n_simulations):
                 current_node = self
                 found_unexplored_node = False
+                terminal_nodes_found = 0
                 while not found_unexplored_node:
                     ##if current_node.is_fully_expanded():
                     ##    current_node.fill_untried_actions()
@@ -388,9 +389,15 @@ class MonteCarloSearchNode:
                         children_node = current_node.children[move]
                         if not children_node.is_terminal_node:
                             current_node = children_node
+                            terminal_nodes_found = 0
+                        else:
+                            terminal_nodes_found += 1
+                            if terminal_nodes_found == len(current_node.legal_actions):
+                                break
                     except:
                         children_node = current_node.expand(self.agent,move,prior)
                         found_unexplored_node = True
+                        terminal_nodes_found = 0
                         break
                 children_node.backpropagate(children_node.node_value)
             ### Add the best_child to the memory batch
