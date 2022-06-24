@@ -23,5 +23,5 @@ def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
         optimizer.step()
 
         # print statistics
-        running_loss += loss.item()
+        running_loss += sum_loss.item()
     return running_loss/j
