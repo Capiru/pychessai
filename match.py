@@ -81,12 +81,16 @@ def save_tensor(tensor):
                 CFG.memory_batch[4][CFG.val_last_index:CFG.val_last_index+size] = tensor[1]
                 CFG.val_last_index += size
         else:
+            if CFG.TEST:
+                assert CFG.last_index == CFG.last_policy_index-size:
             ### Save training batch
             if CFG.last_index + size > CFG.batch_size:
                 CFG.batch_full = True
                 CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
                 CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
-                CFG.last_index = 0
+                CFG.memory_batch[0][0:size-(CFG.batch_size-CFG.last_index),:,:,:] = tensor[0][CFG.batch_size-CFG.last_index:size,:,:,:]
+                CFG.memory_batch[1][0:size-(CFG.batch_size-CFG.last_index)] = tensor[1][CFG.batch_size-CFG.last_index:size]
+                CFG.last_index = size - (CFG.batch_size - CFG.last_index)
                 
             else:
                 CFG.memory_batch[0][CFG.last_index:CFG.last_index+size,:,:,:] = tensor[0]

@@ -2,7 +2,7 @@ import torch
 import chess as ch
 from config import CFG
 
-def map_moves_to_policy(legal_moves,board,flatten = False):
+def map_moves_to_policy(legal_moves,board,flatten = False,dic = None):
     ### Returns a vector same sized as policy with all legal moves, with 1 on possible legal moves
     vector = torch.zeros((73,8,8))
     return_move_list = []
@@ -19,7 +19,10 @@ def map_moves_to_policy(legal_moves,board,flatten = False):
         else:
             plane_no = 0
             plane_no += get_plane_queen_moves(initial_square,to_square)
-        vector[plane_no,initial_square%8,((initial_square)//8)%8] = 1
+        if dic is None:
+            vector[plane_no,initial_square%8,((initial_square)//8)%8] = dic[move]
+        else:
+            vector[plane_no,initial_square%8,((initial_square)//8)%8] = 1
         return_move_list.append(get_vector_coord(plane_no,initial_square%8,((initial_square)//8)%8))
         if CFG.DEBUG:
             flat = torch.flatten(vector)

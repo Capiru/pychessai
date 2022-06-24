@@ -3,6 +3,7 @@ import torch.nn as nn
 
 class CFG:
     DEBUG = False
+    TEST = True
 
     board_size = 8 ## total length and height, total squares = 64
     n_players = 2
