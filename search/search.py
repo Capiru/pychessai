@@ -365,12 +365,13 @@ class MonteCarloSearchNode:
         return move
 
     def save_to_memory(self):
-        input_state = self.state
-        policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
-        CFG.memory_batch[2][CFG.last_policy_index,:] = policy_label
-        CFG.last_policy_index += 1
-        if CFG.last_policy_index%CFG.batch_size == 0:
-            CFG.last_policy_index = 0
+        if not (CFG.count_since_last_val_match + 1) % CFG.val_every_x_games == 0:
+            input_state = self.state
+            policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)
+            CFG.memory_batch[2][CFG.last_policy_index,:] = policy_label
+            CFG.last_policy_index += 1
+            if CFG.last_policy_index%CFG.batch_size == 0:
+                CFG.last_policy_index = 0
 
     def search(self,n_simulations):
         try:
@@ -402,7 +403,7 @@ class MonteCarloSearchNode:
                 children_node.backpropagate(children_node.node_value)
             ### Add the best_child to the memory batch
             best_child_score, best_child = self.find_best_child()
-            if self.agent.training:
+            if self.agent.training and CFG.save_batch_to_memory:
                 self.save_to_memory()
             return best_child_score, best_child
         except:
