@@ -44,5 +44,5 @@ class CFG:
 
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     criterion = nn.MSELoss()
-    bce_criterion = nn.CrossEntropyLoss()
+    bce_criterion = nn.BCEWithLogitsLoss()
     

@@ -329,7 +329,7 @@ class MonteCarloSearchNode:
 
     def get_move_from_policy(self):
         legal_moves = list(self.board.legal_moves)
-        reduced_actions = torch.zeros((len(legal_moves)))
+        reduced_actions = torch.zeros((len(legal_moves))).to(CFG.DEVICE)
         #state = get_board_as_tensor(self.board,self.player_white)
         score,policy = self.get_board_reward()
         if not self.is_terminal_node:
@@ -357,7 +357,7 @@ class MonteCarloSearchNode:
         return child_node
 
     def choose_move_random(self):
-        index = np.random.choice([i for i in range(len(self.legal_actions))],size=1,p=self.policy_priors.detach().numpy())[0]
+        index = np.random.choice([i for i in range(len(self.legal_actions))],size=1,p=self.policy_priors.cpu().detach().numpy())[0]
         return self.legal_actions[index],self.policy_priors[index]
 
     def choose_best_ucb(self):
@@ -372,12 +372,12 @@ class MonteCarloSearchNode:
             CFG.last_policy_index += 1
             if CFG.last_policy_index%CFG.batch_size == 0:
                 CFG.last_policy_index = 0
-        # else:
+        else:
             
-        #     CFG.memory_batch[5][CFG.val_last_policy_index,:] = policy_label
-        #     CFG.val_last_policy_index += 1
-        #     if CFG.val_last_policy_index%CFG.batch_size == 0:
-        #         CFG.val_last_policy_index = 0
+            CFG.memory_batch[5][CFG.val_last_policy_index,:] = policy_label
+            CFG.val_last_policy_index += 1
+            if CFG.val_last_policy_index%CFG.batch_size == 0:
+                CFG.val_last_policy_index = 0
 
     def search(self,n_simulations):
         try:
