@@ -20,7 +20,7 @@ class CFG:
     weight_decay = 1e-7
     epochs = 20
     patience = 10
-    batch_size = 4096
+    batch_size = 2048
 
     policy_output_size = 4672
 
@@ -40,7 +40,10 @@ class CFG:
         
     WIN_VALUE = 1
     LOSS_VALUE = -1
-    DRAW_VALUE = -0.2
+    DRAW_VALUE = -0.01
+
+    cloud_operations = True
+    model_dir_path = "./models/"
 
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     criterion = nn.MSELoss()
