@@ -15,48 +15,52 @@ def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     return str(df.iloc[random_idx].starting_fen)
 
 def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=16,save_tensor = True,progress = None,is_player_one = True):
-    try:
-        if start_from_opening:
-            game = ch.Board(fen_start_from_opening())
-        else:
-            game = ch.Board()
-            if start_from_random and random_start_depth%2 == 0:
-                for i in range(random_start_depth):
-                    legal_moves = list(game.legal_moves)
-                    if len(legal_moves) > 0:
-                        move = random_choice(legal_moves,None,1)
-                        game.push(move[0])
-        agent_one.is_white = True
-        agent_two.is_white = False
-        agent_one.positions = 0
-        agent_two.positions = 0
+    if start_from_opening:
+        game = ch.Board(fen_start_from_opening())
+    else:
+        game = ch.Board()
+        if start_from_random and random_start_depth%2 == 0:
+            for i in range(random_start_depth):
+                legal_moves = list(game.legal_moves)
+                if len(legal_moves) > 0:
+                    move = random_choice(legal_moves,None,1)
+                    game.push(move[0])
+    agent_one.is_white = True
+    agent_two.is_white = False
+    agent_one.positions = 0
+    agent_two.positions = 0
+    
+    while game.is_game_over() is False:
+        move = agent_one.choose_move(game)
+        game.push(move[0])
         
-        while game.is_game_over() is False:
-            move = agent_one.choose_move(game)
-            game.push(move[0])
-            
-            if game.is_game_over() is True:
-                break
-            move = agent_two.choose_move(game)
-            game.push(move[0])
-            if progress is not None:
-                progress.set_description()
+        if game.is_game_over() is True:
+            break
+        move = agent_two.choose_move(game)
+        game.push(move[0])
+        if progress is not None:
+            progress.set_description()
+    try:
+        agent_one.reset_game()
+        agent_two.reset_game()
+    except:
+        a = 1
+    if is_update_elo:
+        update_elo_agents(agent_one,agent_two,game.outcome().winner)
+    if save_tensor:
+        try:
+            winner = game.outcome().winner
+            win_nxor = not (winner ^ is_player_one)
+        except:
+            win_nxor = None
+            winner = None
+        match_tensor = get_match_as_fen_tensor(game,win_nxor,is_player_one)
+        return winner,match_tensor
+    else:
+        return game.outcome().winner
 
-        if is_update_elo:
-            update_elo_agents(agent_one,agent_two,game.outcome().winner)
-        if save_tensor:
-            try:
-                winner = not (game.outcome().winner ^ is_player_one)
-            except:
-                winner = None
-            match_tensor = get_match_as_fen_tensor(game,winner,is_player_one)
-            return winner,match_tensor
-        else:
-            return game.outcome().winner
-    except Exception() as e:
-        print(game.fen())
-        print(e)
-        raise AssertionError
+def get_file_name():
+    return None
 
 def save_tensor(tensor):
     if CFG.save_tensor_to_disk:
@@ -108,7 +112,7 @@ def save_tensor(tensor):
 
 
 def experiments(agent_one,agent_two,n=100,is_update_elo=True,start_from_opening = False,start_from_random=False,
-                random_start_depth = 16,progress_bar = True,save_match_tensor = True,is_player_one = True):
+                random_start_depth = 0,progress_bar = True,save_match_tensor = True,is_player_one = True):
     outcomes = [0, 0, 0]
     if progress_bar:
         progress = tqdm(range(n), desc="", total=n)
@@ -284,7 +288,7 @@ def decaying_function_cosdecay(l,x):
 
 def get_match_as_fen_tensor(board,winner,player_white = True):
     pytorch = True
-    match_len = len(board.move_stack)
+    match_len = len(board.move_stack)-CFG.RANDOM_START
     num_pieces = 6
     num_players = 2
     board_size = 8
@@ -296,7 +300,7 @@ def get_match_as_fen_tensor(board,winner,player_white = True):
       input_tensor_size = (match_len,board_size,board_size,total_num_planes)
     target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
-    for i in range(match_len):
+    for i in range(match_len-CFG.RANDOM_START):
         tensor[i,:,:,:] = get_board_as_tensor(board,player_white)
         board.pop()
         if winner is None:

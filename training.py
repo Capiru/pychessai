@@ -103,7 +103,7 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
         if val_loss < agent.best_val_loss and agent.elo_diff_from_random > 0:
             agent.best_val_loss = val_loss
             patience = 0
-            agent.save_model()
+            agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
         else:
             patience += 1
             if patience >= max_patience:
@@ -118,8 +118,8 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         update_base_agent = True
         base_agent = agent.get_deepcopy()
     val_agents = {0:val_agent}
-    for i in range(n_episodes):
-        if (i+1) % n_accumulate == 0:
+    for episode in range(n_episodes):
+        if (episode+1) % n_accumulate == 0:
           output.clear()
           if update_base_agent:
               base_agent = agent.get_deepcopy()
@@ -130,7 +130,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         agent.value_model.train()
         CFG.batch_full = False
         agent.training = True
-        train_outcomes = experiments(agent,base_agent,play_batch_size,start_from_random=True,random_start_depth = 0)
+        train_outcomes = experiments(agent,base_agent,play_batch_size,start_from_random=True,random_start_depth = CFG.RANDOM_START)
         agent.training = False
         train_elo_diff = get_elo_diff_from_outcomes(train_outcomes)
         if not update_base_agent:
@@ -138,7 +138,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         if not CFG.save_batch_to_device:
             file_list = [x for x in os.listdir("./") if x.endswith(".pt")]
             index_array = np.array([j for j in range(len(file_list))])
-            if (i+1) % n_accumulate == 0 or i == 0:
+            if (episode+1) % n_accumulate == 0 or episode == 0:
                 kf = KFold(n_splits=10)
                 splits = list(kf.split(index_array))
                 train_idxs,val_idxs = splits[0]

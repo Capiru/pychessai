@@ -13,13 +13,13 @@ class CFG:
     n_planes = n_players * n_pieces + real_planes + attacking_planes
 
 
-    lr = 0.0005
+    lr = 0.0001
     every_x_epochs = 100
     mult_lr = 0.5
 
-    weight_decay = 1e-7
+    weight_decay = 1e-8
     epochs = 20
-    patience = 10
+    patience = 2
     batch_size = 2048
 
     policy_output_size = 4672
@@ -41,11 +41,16 @@ class CFG:
     WIN_VALUE = 1
     LOSS_VALUE = -1
     DRAW_VALUE = -0.01
+    RANDOM_START = 4
 
-    cloud_operations = True
+    cloud_operations = False
     model_dir_path = "./models/"
 
-    DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    GPU = True
+    if GPU:
+        DEVICE = torch.device("cuda:0")
+    else:
+        DEVICE = torch.device("cpu")
     criterion = nn.MSELoss()
     bce_criterion = nn.BCEWithLogitsLoss()
     

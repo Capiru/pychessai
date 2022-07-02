@@ -2,6 +2,7 @@ import os
 import math
 from torch.utils.data import Dataset,DataLoader
 import pandas as pd
+import torch
 class CustomMatchDataset(Dataset):
     def __init__(self, dirpath = None, file_list = None ,file_extension = ".pt",val = False,val_train_split = 0.8,idxs = []):
         if dirpath is None and file_list is None:

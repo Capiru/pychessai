@@ -74,7 +74,6 @@ class LeelaZeroAgent(object):
         self.training = training
         self.policy_output_size = policy_output_size
         self.positions = 0
-        self.print_batch_interval = 4
         self.eval = 0
         self.best_val_loss = np.inf
         self.trained_epochs = 0
@@ -82,27 +81,20 @@ class LeelaZeroAgent(object):
         self.input_channel_size,self.filters,self.res_blocks,self.se_channels,self.policy_conv_size = input_channel_size,filters,res_blocks,se_channels,policy_conv_size
         self.value_model = LeelaZero(input_channel_size=self.input_channel_size,filters=self.filters,res_blocks=self.res_blocks,se_channels=self.se_channels,
                                     policy_conv_size=self.policy_conv_size,policy_output_size=self.policy_output_size)
+        self.parent_node = None
 
     def choose_move(self,board):
         self.board = board
-        node = MonteCarloSearchNode(self,None,self.is_white,self.board)
-        score,move = node.search(n_simulations = self.n_simulations)
+        self.parent_node = MonteCarloSearchNode(self,None,self.is_white,board)
+        score,move = self.parent_node.search(n_simulations = self.n_simulations)
+        # try:
+        #     self.parent_node = self.parent_node.children[move]
+        # except:
+        #     self.parent_node = None
         self.positions += self.n_simulations
         self.eval = score.detach().cpu()
         return [move]
     
-
-    def legal_inference(legal_moves,move_outputs):
-        #first transform move_outputs to san move
-        output_reshaped = torch.reshape(move_outputs,(8,8,12))
-        dic_encoder = {"p":0,"P":1,"r":2,"R":3,"n":4,"N":5,"b":6,"B":7,"q":8,"Q":9,"k":10,"K":11}
-        row_encoder = {0:"A",1:"B",2:"C",3:"D",4:"E",5:"F",6:"G",7:"H"}
-        #i need to get the max, index
-        #then compare if move is in legal moves
-        for move in move_outputs:
-            if list(legal_moves):
-                return move
-
     def get_model_name(self):
         return str(round(self.best_val_loss,8))+"-"+str(self.elo_diff_from_random)+"-"+str(self.trained_epochs)+".pth"
 
@@ -119,3 +111,6 @@ class LeelaZeroAgent(object):
         new_agent.value_model.load_state_dict(state_dict)
         new_agent.value_model.to(CFG.DEVICE)
         return new_agent
+
+    def reset_game(self):
+        self.parent_node = None
