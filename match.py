@@ -252,10 +252,8 @@ def get_board_as_tensor(board,player_white):
         input_tensor_size = (board_size,board_size,total_num_planes)
     tensor = torch.zeros(input_tensor_size)
     
-    if board.turn == ch.WHITE:
-        white = True
-    else:
-        white = False
+    if board.turn == ch.WHITE ^ player_white:
+        ### opponent's turn
         tensor[12,:,:] = 1
     pieces = [ch.PAWN,ch.KNIGHT,ch.BISHOP,ch.ROOK,ch.QUEEN,ch.KING]
     if player_white:
