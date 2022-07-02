@@ -13,13 +13,13 @@ class CFG:
     n_planes = n_players * n_pieces + real_planes + attacking_planes
 
 
-    lr = 0.0001
-    every_x_epochs = 100
+    lr = 0.0005
+    every_x_epochs = 1000
     mult_lr = 0.5
 
     weight_decay = 1e-8
     epochs = 20
-    patience = 2
+    patience = 3
     batch_size = 2048
 
     policy_output_size = 4672

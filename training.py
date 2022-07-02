@@ -120,13 +120,16 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
     val_agents = {0:val_agent}
     for episode in range(n_episodes):
         if (episode+1) % n_accumulate == 0:
-          output.clear()
-          if update_base_agent:
-              base_agent = agent.get_deepcopy()
-          file_list = os.listdir("./")
-          for item in file_list:
-              if item.endswith(".pt"):
-                  os.remove(os.path.join("./", item))
+            try:
+                output.clear()
+            except:
+                pass
+            if update_base_agent:
+                base_agent = agent.get_deepcopy()
+            file_list = os.listdir("./")
+            for item in file_list:
+                if item.endswith(".pt"):
+                    os.remove(os.path.join("./", item))
         agent.value_model.train()
         CFG.batch_full = False
         agent.training = True
