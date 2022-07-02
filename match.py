@@ -237,7 +237,7 @@ def get_fen_as_tensor(fen):
             file_ += 1
     return tensor.to(CFG.DEVICE)
 
-def get_board_as_tensor(board,player_white = True):
+def get_board_as_tensor(board,player_white):
     num_pieces = 6
     num_players = 2
     board_size = 8
@@ -260,8 +260,10 @@ def get_board_as_tensor(board,player_white = True):
     pieces = [ch.PAWN,ch.KNIGHT,ch.BISHOP,ch.ROOK,ch.QUEEN,ch.KING]
     if player_white:
         colors = [ch.WHITE,ch.BLACK]
+        starting_plane = 7
     else:
         colors = [ch.BLACK,ch.WHITE]
+        starting_plane = 0
     num_before_draw = math.floor(board.halfmove_clock/2)
     if num_before_draw >= 64:
         tensor[17,7,7] = 1
@@ -278,7 +280,7 @@ def get_board_as_tensor(board,player_white = True):
             plane += 1
             piece_map = board.pieces(piece,color)
             for pos in piece_map:
-                tensor[plane,7-pos//8,pos%8] = 1
+                tensor[plane,abs(starting_plane-pos//8),pos%8] = 1
     assert plane == int(len(pieces)*2-1)
 
     return tensor.to(CFG.DEVICE)
