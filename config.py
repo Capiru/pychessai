@@ -25,7 +25,7 @@ class CFG:
     policy_output_size = 4672
 
     save_tensor_to_disk = True
-    save_batch_to_device = False
+    save_batch_to_device = True
     validate_match = True
     val_every_x_games = 3
     if save_batch_to_device:
