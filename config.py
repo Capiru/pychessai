@@ -46,6 +46,7 @@ class CFG:
     cloud_operations = True
     model_dir_path = "/content/drive/MyDrive/projects/chessai/models/"
     dataset_dir_path = "/content/drive/MyDrive/projects/chessai/datasets/"
+    max_dataset_size = 25 ### in Gb
 
     GPU = torch.cuda.is_available()
     if GPU:
