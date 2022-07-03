@@ -12,6 +12,7 @@ from sklearn.model_selection import KFold
 from match import *
 from agents.RandomAgent import RandomAgent
 from datasets import *
+from cloudops import *
 
 def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
     agent.value_model.eval()
@@ -110,6 +111,23 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
                 break
     return None
 
+def get_batch_datasets():
+    train_dataset = BatchMemoryDataset(CFG.memory_batch[0:3])
+    val_dataset = BatchMemoryDataset(CFG.memory_batch[3:6],CFG.val_last_index)
+    return train_dataset,val_dataset
+
+def get_pos_tensors_datasets():
+    file_list = [x for x in os.listdir(CFG.dataset_dir_path) if x.endswith(".pt")]
+    index_array = np.array([j for j in range(len(file_list))])
+    if (episode+1) % n_accumulate == 0 or episode == 0:
+        kf = KFold(n_splits=10)
+        splits = list(kf.split(index_array))
+        train_idxs,val_idxs = splits[0]
+        val_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = val_idxs)
+    else:
+        train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
+    train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
+
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
     if val_agent is None:
@@ -150,8 +168,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
             train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
         else:
-            train_dataset = BatchMemoryDataset(CFG.memory_batch[0:3])
-            val_dataset = BatchMemoryDataset(CFG.memory_batch[3:6],CFG.val_last_index)
+            train_dataset,val_dataset = get_batch_datasets()
             
         train_value_model(agent,train_dataset,val_dataset)
         agent.value_model.eval()
