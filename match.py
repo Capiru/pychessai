@@ -7,6 +7,7 @@ from tqdm import tqdm
 import time
 import math
 from move_choice import random_choice
+from cloudops import dir_size
 import os
 
 def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
