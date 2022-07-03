@@ -81,7 +81,7 @@ def save_tensor(tensor):
                 CFG.memory_batch[3][CFG.val_last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.val_last_index,:,:,:]
                 CFG.memory_batch[4][CFG.val_last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.val_last_index]
                 if CFG.save_tensor_to_disk:
-                    torch.save([CFG.memory_batch[3],CFG.memory_batch[4],CFG.memory_batch[5]],os.path.join(dir_path,str(time.time())+str(i)+"_valbatch.pt"))
+                    torch.save([CFG.memory_batch[3],CFG.memory_batch[4],CFG.memory_batch[5]],os.path.join(dir_path,str(time.time())+"_valbatch.pt"))
                 CFG.memory_batch[3][0:size-(CFG.batch_size-CFG.val_last_index),:,:,:] = tensor[0][CFG.batch_size-CFG.val_last_index:size,:,:,:]
                 CFG.memory_batch[4][0:size-(CFG.batch_size-CFG.val_last_index)] = tensor[1][CFG.batch_size-CFG.val_last_index:size]
                 CFG.val_last_index = size - (CFG.batch_size - CFG.val_last_index)
@@ -104,7 +104,7 @@ def save_tensor(tensor):
                 CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
                 CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
                 if CFG.save_tensor_to_disk:
-                    torch.save([CFG.memory_batch[0],CFG.memory_batch[1],CFG.memory_batch[2]],os.path.join(dir_path,str(time.time())+str(i)+"_batch.pt"))
+                    torch.save([CFG.memory_batch[0],CFG.memory_batch[1],CFG.memory_batch[2]],os.path.join(dir_path,str(time.time())+"_batch.pt"))
                 CFG.memory_batch[0][0:size-(CFG.batch_size-CFG.last_index),:,:,:] = tensor[0][CFG.batch_size-CFG.last_index:size,:,:,:]
                 CFG.memory_batch[1][0:size-(CFG.batch_size-CFG.last_index)] = tensor[1][CFG.batch_size-CFG.last_index:size]
                 CFG.last_index = size - (CFG.batch_size - CFG.last_index)
