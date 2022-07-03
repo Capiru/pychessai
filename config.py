@@ -19,7 +19,7 @@ class CFG:
 
     weight_decay = 1e-8
     epochs = 20
-    patience = 3
+    patience = 10
     batch_size = 2048
 
     policy_output_size = 4672

@@ -55,8 +55,8 @@ class LeelaZero(nn.Module):
         value = torch.tanh(self.value_head(value))
         return value,policy
     
-    def get_board_evaluation(self,board):
-        input_tensor = get_board_as_tensor(board)
+    def get_board_evaluation(self,board,is_player_white):
+        input_tensor = get_board_as_tensor(board,is_player_white)
         #might need to reshape for input
         c,w,h = input_tensor.shape
         return self.forward(torch.reshape(input_tensor,[1,c,w,h]))

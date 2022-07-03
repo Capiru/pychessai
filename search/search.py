@@ -301,7 +301,7 @@ class MonteCarloSearchNode:
                 return CFG.DRAW_VALUE,None
         else:
             self.is_terminal_node = False
-            return self.agent.value_model.get_board_evaluation(self.board)
+            return self.agent.value_model.get_board_evaluation(self.board,self.player_white)
     
     def backpropagate(self,result):
         self.visit_count += 1
