@@ -72,6 +72,7 @@ def save_tensor(tensor):
             dir_path = "./datasets/"
         for i in range(positions.size(dim=0)):
             torch.save([positions[i,:,:,:],outcomes[i],CFG.memory_batch[2][CFG.last_policy_index - i,:]],os.path.join(dir_path,str(time.time())+str(i)+".pt"))
+            CFG.last_policy_index = 0
         return None
     elif CFG.save_batch_to_device:
         CFG.count_since_last_val_match+=1
