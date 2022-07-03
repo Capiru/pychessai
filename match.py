@@ -64,7 +64,7 @@ def get_file_name():
     return None
 
 def save_tensor(tensor):
-    if CFG.save_tensor_to_disk:
+    if CFG.save_tensor_to_disk and not CFG.save_batch_to_device:
         positions,outcomes = tensor
         if CFG.cloud_operations:
             dir_path = CFG.dataset_dir_path
