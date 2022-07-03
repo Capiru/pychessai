@@ -47,7 +47,7 @@ class CFG:
     model_dir_path = "/content/drive/MyDrive/projects/chessai/models/"
     dataset_dir_path = "/content/drive/MyDrive/projects/chessai/datasets/"
 
-    GPU = torch.is_cuda_available()
+    GPU = torch.cuda.is_available()
     if GPU:
         DEVICE = torch.device("cuda:0")
     else:
