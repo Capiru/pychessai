@@ -60,9 +60,6 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
     else:
         return game.outcome().winner
 
-def get_file_name():
-    return None
-
 def save_tensor(tensor):
     if CFG.save_tensor_to_disk and not CFG.save_batch_to_device:
         positions,outcomes = tensor
