@@ -65,8 +65,12 @@ def get_file_name():
 def save_tensor(tensor):
     if CFG.save_tensor_to_disk:
         positions,outcomes = tensor
+        if CFG.cloud_operations:
+            dir_path = CFG.dataset_dir_path
+        else:
+            dir_path = "./datasets/"
         for i in range(positions.size(dim=0)):
-            torch.save([positions[i,:,:,:],outcomes[i]],str(time.time())+str(i)+".pt")
+            torch.save([positions[i,:,:,:],outcomes[i]],os.join(dir_path,str(time.time())+str(i)+".pt"))
         return None
     elif CFG.save_batch_to_device:
         CFG.count_since_last_val_match+=1
@@ -300,11 +304,11 @@ def get_match_as_fen_tensor(board,winner,player_white = True):
       input_tensor_size = (match_len,board_size,board_size,total_num_planes)
     target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
-    for i in range(match_len-CFG.RANDOM_START):
+    for i in range(match_len):
         tensor[i,:,:,:] = get_board_as_tensor(board,player_white)
         board.pop()
         if winner is None:
-            target_tensor[i] = -0.2
+            target_tensor[i] = CFG.DRAW_VALUE
         elif not (winner ^ player_white):
             target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i)
         else:

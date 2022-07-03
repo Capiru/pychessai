@@ -24,8 +24,8 @@ class CFG:
 
     policy_output_size = 4672
 
-    save_tensor_to_disk = False
-    save_batch_to_device = True
+    save_tensor_to_disk = True
+    save_batch_to_device = False
     validate_match = True
     val_every_x_games = 3
     if save_batch_to_device:
@@ -43,10 +43,11 @@ class CFG:
     DRAW_VALUE = -0.01
     RANDOM_START = 4
 
-    cloud_operations = False
-    model_dir_path = "./models/"
+    cloud_operations = True
+    model_dir_path = "/content/drive/MyDrive/projects/chessai/models/"
+    dataset_dir_path = "/content/drive/MyDrive/projects/chessai/datasets/"
 
-    GPU = True
+    GPU = torch.is_cuda_available()
     if GPU:
         DEVICE = torch.device("cuda:0")
     else:
