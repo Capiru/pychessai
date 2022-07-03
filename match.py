@@ -77,7 +77,7 @@ def save_tensor(tensor):
         size = tensor[0].size(dim=0)
         if CFG.count_since_last_val_match % CFG.val_every_x_games == 0:
             ### Save Val Batch
-            if CFG.val_last_index + size > CFG.batch_size:
+            if CFG.val_last_index + size >= CFG.batch_size:
                 CFG.memory_batch[3][CFG.val_last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.val_last_index,:,:,:]
                 CFG.memory_batch[4][CFG.val_last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.val_last_index]
                 if CFG.save_tensor_to_disk:
@@ -93,7 +93,7 @@ def save_tensor(tensor):
         else:
             if CFG.TEST:
                 try:
-                    if not CFG.last_index + size > CFG.batch_size:
+                    if not CFG.last_index + size >= CFG.batch_size:
                         assert CFG.last_index == CFG.last_policy_index-size
                 except:
                     print(CFG.last_index,CFG.last_policy_index,size)
