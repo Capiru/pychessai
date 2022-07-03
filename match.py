@@ -62,12 +62,12 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
         return game.outcome().winner
 
 def save_tensor(tensor):
+    if CFG.cloud_operations:
+        dir_path = CFG.dataset_dir_path
+    else:
+        dir_path = "./datasets/"
     if CFG.save_tensor_to_disk and not CFG.save_batch_to_device:
         positions,outcomes = tensor
-        if CFG.cloud_operations:
-            dir_path = CFG.dataset_dir_path
-        else:
-            dir_path = "./datasets/"
         for i in range(positions.size(dim=0)):
             torch.save([positions[i,:,:,:],outcomes[i],CFG.memory_batch[2][CFG.last_policy_index - i,:]],os.path.join(dir_path,str(time.time())+str(i)+".pt"))
             CFG.last_policy_index = 0
@@ -81,7 +81,7 @@ def save_tensor(tensor):
                 CFG.memory_batch[3][CFG.val_last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.val_last_index,:,:,:]
                 CFG.memory_batch[4][CFG.val_last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.val_last_index]
                 if CFG.save_tensor_to_disk:
-                    torch.save([CFG.memory_batch[3],CFG.memory_batch[4],CFG.memory_batch[5]],str(time.time())+"_val_batch.pt")
+                    torch.save([CFG.memory_batch[3],CFG.memory_batch[4],CFG.memory_batch[5]],os.path.join(dir_path,str(time.time())+str(i)+"_valbatch.pt"))
                 CFG.memory_batch[3][0:size-(CFG.batch_size-CFG.val_last_index),:,:,:] = tensor[0][CFG.batch_size-CFG.val_last_index:size,:,:,:]
                 CFG.memory_batch[4][0:size-(CFG.batch_size-CFG.val_last_index)] = tensor[1][CFG.batch_size-CFG.val_last_index:size]
                 CFG.val_last_index = size - (CFG.batch_size - CFG.val_last_index)
@@ -104,7 +104,7 @@ def save_tensor(tensor):
                 CFG.memory_batch[0][CFG.last_index:CFG.batch_size,:,:,:] = tensor[0][0:CFG.batch_size-CFG.last_index,:,:,:]
                 CFG.memory_batch[1][CFG.last_index:CFG.batch_size] = tensor[1][0:CFG.batch_size-CFG.last_index]
                 if CFG.save_tensor_to_disk:
-                    torch.save([CFG.memory_batch[0],CFG.memory_batch[1],CFG.memory_batch[2]],str(time.time())+"_batch.pt")
+                    torch.save([CFG.memory_batch[0],CFG.memory_batch[1],CFG.memory_batch[2]],os.path.join(dir_path,str(time.time())+str(i)+"_batch.pt"))
                 CFG.memory_batch[0][0:size-(CFG.batch_size-CFG.last_index),:,:,:] = tensor[0][CFG.batch_size-CFG.last_index:size,:,:,:]
                 CFG.memory_batch[1][0:size-(CFG.batch_size-CFG.last_index)] = tensor[1][CFG.batch_size-CFG.last_index:size]
                 CFG.last_index = size - (CFG.batch_size - CFG.last_index)
