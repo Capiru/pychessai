@@ -126,10 +126,10 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 pass
             if update_base_agent:
                 base_agent = agent.get_deepcopy()
-            file_list = os.listdir("./")
+            file_list = os.listdir(CFG.dataset_dir_path)
             for item in file_list:
                 if item.endswith(".pt"):
-                    os.remove(os.path.join("./", item))
+                    os.remove(os.path.join(CFG.dataset_dir_path, item))
         agent.value_model.train()
         CFG.batch_full = False
         agent.training = True
@@ -139,16 +139,16 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         if not update_base_agent:
             a = 0
         if not CFG.save_batch_to_device:
-            file_list = [x for x in os.listdir("./") if x.endswith(".pt")]
+            file_list = [x for x in os.listdir(CFG.dataset_dir_path) if x.endswith(".pt")]
             index_array = np.array([j for j in range(len(file_list))])
             if (episode+1) % n_accumulate == 0 or episode == 0:
                 kf = KFold(n_splits=10)
                 splits = list(kf.split(index_array))
                 train_idxs,val_idxs = splits[0]
-                val_dataset = CustomMatchDataset(dirpath = "./",idxs = val_idxs)
+                val_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = val_idxs)
             else:
                 train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
-            train_dataset = CustomMatchDataset(dirpath = "./",idxs = train_idxs)
+            train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
         else:
             train_dataset = BatchMemoryDataset(CFG.memory_batch[0:3])
             val_dataset = BatchMemoryDataset(CFG.memory_batch[3:6],CFG.val_last_index)
@@ -157,5 +157,5 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         agent.value_model.eval()
         val_agents = validate_outcomes(agent,val_agents=val_agents)
         if CFG.cloud_operations:
-            get_agent_pool_df(model_save_path = "/content/drive/MyDrive/projects/chessai",file_extension = ".pth")
+            get_agent_pool_df(model_save_path = CFG.model_dir_path,file_extension = ".pth")
     return None

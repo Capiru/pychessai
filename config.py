@@ -27,7 +27,7 @@ class CFG:
     save_tensor_to_disk = True
     save_batch_to_device = True
     validate_match = True
-    val_every_x_games = 3
+    val_every_x_games = 30000
     if save_batch_to_device:
         memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size)),
                         torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size))]
