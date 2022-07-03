@@ -7,6 +7,7 @@ from tqdm import tqdm
 import time
 import math
 from move_choice import random_choice
+import os
 
 def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     df = pd.read_csv(openings_path)
