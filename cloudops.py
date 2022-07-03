@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 def dir_size(dir_path):
     ### Returns the size of a directory in Gb
