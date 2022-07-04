@@ -123,7 +123,7 @@ def get_batch_datasets():
     val_dataset = BatchMemoryDataset(CFG.memory_batch[3:6],CFG.val_last_index)
     return train_dataset,val_dataset
 
-def get_tensors_from_files_datasets(dir_path,file_ending=".pt",train_idx=None,val_idxs=None):
+def get_tensors_from_files_datasets(dir_path,file_ending=".pt",train_idxs=None,val_idxs=None):
     val_dataset = CustomMatchDataset(dirpath = dir_path,idxs = val_idxs)
     train_dataset = CustomMatchDataset(dirpath = dir_path,idxs = train_idxs)
     return train_dataset,val_dataset
