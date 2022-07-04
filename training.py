@@ -163,7 +163,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         train_elo_diff = get_elo_diff_from_outcomes(train_outcomes)
         if not update_base_agent:
             a = 0
-        if CFG.save_tensor_to_disk and not CFG.save_batch_to_device:
+        if CFG.save_tensor_to_disk:
             file_list = [x for x in os.listdir(CFG.dataset_dir_path) if x.endswith(".pt")]
             index_array = np.array([j for j in range(len(file_list))])
             if (episode+1) % n_accumulate == 0 or episode == 0:
