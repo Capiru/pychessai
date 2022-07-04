@@ -172,7 +172,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 train_idxs,val_idxs = splits[0]
             else:
                 train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
-            train_dataset,val_dataset = get_tensors_from_files_datasets(CFG.dataset_dir_path,file_ending=".pt",train_idx=train_idxs,val_idxs=val_idxs)
+            train_dataset,val_dataset = get_tensors_from_files_datasets(CFG.dataset_dir_path,file_ending=".pt",train_idxs=train_idxs,val_idxs=val_idxs)
         else:
             train_dataset,val_dataset = get_batch_datasets()
         train_loader,val_loader = get_data_loader(train_dataset,val_dataset=val_dataset,batch_size = 1)
