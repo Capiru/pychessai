@@ -13,6 +13,7 @@ from match import *
 from agents.RandomAgent import RandomAgent
 from datasets import *
 from cloudops import *
+import torch.utils.data.dataloader
 
 def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
     agent.value_model.eval()
@@ -66,8 +67,8 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
     criterion = CFG.criterion
     bce_criterion = CFG.bce_criterion
     optimizer = torch.optim.Adam(agent.value_model.parameters(),lr = CFG.lr,weight_decay = CFG.weight_decay)
-    train_loader = DataLoader(train_dataset, batch_size=CFG.batch_size,shuffle=True,drop_last=False, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=int(CFG.batch_size/2),drop_last=False, num_workers=0)
+    train_loader = DataLoader(train_dataset, batch_size=CFG.batch_size,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
+    val_loader = DataLoader(val_dataset, batch_size=int(CFG.batch_size/2),drop_last=False, num_workers=0,collate_fn=my_collate)
     len_tl = len(train_loader)
     val_loss = 0
     patience = 0
@@ -128,6 +129,11 @@ def get_pos_tensors_datasets():
         train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
     train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
 
+def my_collate(batch):
+    "Puts each data field into a tensor with outer dimension batch size"
+    batch = filter (lambda x:x is not None, batch)
+    return default_collate(batch)
+
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
     if val_agent is None:
@@ -156,7 +162,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         train_elo_diff = get_elo_diff_from_outcomes(train_outcomes)
         if not update_base_agent:
             a = 0
-        if not CFG.save_batch_to_device:
+        if CFG.save_tensor_to_disk and not CFG.save_batch_to_device:
             file_list = [x for x in os.listdir(CFG.dataset_dir_path) if x.endswith(".pt")]
             index_array = np.array([j for j in range(len(file_list))])
             if (episode+1) % n_accumulate == 0 or episode == 0:
