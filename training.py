@@ -83,7 +83,6 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
         agent.value_model.train()
         running_loss = 0.0
         for i, (inputs, labels,policy_labels) in enumerate(train_loader, 0):
-            print(inputs.size())
             sum_loss = 0
             # get the inputs; data is a list of [inputs, labels]
             inputs = inputs.to(CFG.DEVICE)
@@ -136,9 +135,6 @@ def get_data_loader(train_dataset,val_dataset=None,batch_size = 1):
     return train_loader,val_loader
 
 
-
-
-
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
     if val_agent is None:
@@ -179,8 +175,8 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
             train_dataset,val_dataset = get_tensors_from_files_datasets(CFG.dataset_dir_path,file_ending=".pt",train_idx=train_idxs,val_idxs=val_idxs)
         else:
             train_dataset,val_dataset = get_batch_datasets()
-        
-        train_value_model(agent,train_dataset,val_dataset)
+        train_loader,val_loader = get_data_loader(train_dataset,val_dataset=val_dataset,batch_size = 1)
+        train_value_model(agent,train_loader,val_loader)
         agent.value_model.eval()
         val_agents = validate_outcomes(agent,val_agents=val_agents)
         if CFG.cloud_operations:
