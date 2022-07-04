@@ -27,10 +27,11 @@ class CustomMatchDataset(Dataset):
         return len(self.file_list)
 
     def __getitem__(self, idx):
-        tensor = torch.load(self.file_list[idx])
+        tensor = torch.load(os.path.join(self.dirpath,self.file_list[idx]))
         match = tensor[0]
-        target = tensor[1]
-        return match, target
+        value_target = tensor[1]
+        policy_target = tensor[2]
+        return match, value_target, policy_target
 
 class BatchMemoryDataset(Dataset):
     def __init__(self,tensor,length = None):
