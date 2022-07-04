@@ -131,7 +131,11 @@ def get_pos_tensors_datasets():
 
 def my_collate(batch):
     "Puts each data field into a tensor with outer dimension batch size"
-    return batch[0]
+    data = torch.cat([item[0] for item in batch],dim = 0)
+    value_target = torch.cat([item[1] for item in batch],dim = 0)
+    policy_target = torch.cat([item[2] for item in batch],dim = 0)
+    return [data,value_target,policy_target]
+
 
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
