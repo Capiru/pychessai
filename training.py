@@ -13,7 +13,7 @@ from match import *
 from agents.RandomAgent import RandomAgent
 from datasets import *
 from cloudops import *
-import torch.utils.data.dataloader
+from torch.utils.data.dataloader import default_collate
 
 def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
     agent.value_model.eval()
