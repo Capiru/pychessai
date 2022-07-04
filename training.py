@@ -131,7 +131,7 @@ def get_pos_tensors_datasets():
 
 def my_collate(batch):
     "Puts each data field into a tensor with outer dimension batch size"
-    batch = filter (lambda x:x is not None, batch)
+    batch = list(filter(lambda x : x is not None, batch))
     return default_collate(batch)
 
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
