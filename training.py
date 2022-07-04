@@ -59,6 +59,13 @@ def validate_outcomes(agent,val_agents={},n_tries = 10,elo_save_treshold = 200):
     val_agents[agent.elo_diff_from_random] = val_agent
     return val_agents
 
+def my_collate(batch):
+    "Puts each data field into a tensor with outer dimension batch size"
+    data = torch.cat([item[0] for item in batch],dim = 0)
+    value_target = torch.cat([item[1] for item in batch],dim = 0)
+    policy_target = torch.cat([item[2] for item in batch],dim = 0)
+    return [data,value_target,policy_target]
+
 def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
     if progress_bar:
         progress = tqdm(range(CFG.epochs), desc="")
@@ -67,8 +74,8 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
     criterion = CFG.criterion
     bce_criterion = CFG.bce_criterion
     optimizer = torch.optim.Adam(agent.value_model.parameters(),lr = CFG.lr,weight_decay = CFG.weight_decay)
-    train_loader = DataLoader(train_dataset, batch_size=CFG.batch_size,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
-    val_loader = DataLoader(val_dataset, batch_size=int(CFG.batch_size/2),drop_last=False, num_workers=0,collate_fn=my_collate)
+    train_loader = DataLoader(train_dataset, batch_size=1,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
+    val_loader = DataLoader(val_dataset, 1,drop_last=False, num_workers=0,collate_fn=my_collate)
     len_tl = len(train_loader)
     val_loss = 0
     patience = 0
@@ -129,12 +136,7 @@ def get_pos_tensors_datasets():
         train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
     train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
 
-def my_collate(batch):
-    "Puts each data field into a tensor with outer dimension batch size"
-    data = torch.cat([item[0] for item in batch],dim = 0)
-    value_target = torch.cat([item[1] for item in batch],dim = 0)
-    policy_target = torch.cat([item[2] for item in batch],dim = 0)
-    return [data,value_target,policy_target]
+
 
 
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
