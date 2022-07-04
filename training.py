@@ -66,7 +66,7 @@ def my_collate(batch):
     policy_target = torch.cat([item[2] for item in batch],dim = 0)
     return [data,value_target,policy_target]
 
-def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
+def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
     if progress_bar:
         progress = tqdm(range(CFG.epochs), desc="")
     else:
@@ -74,8 +74,6 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
     criterion = CFG.criterion
     bce_criterion = CFG.bce_criterion
     optimizer = torch.optim.Adam(agent.value_model.parameters(),lr = CFG.lr,weight_decay = CFG.weight_decay)
-    train_loader = DataLoader(train_dataset, batch_size=1,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
-    val_loader = DataLoader(val_dataset, 1,drop_last=False, num_workers=0,collate_fn=my_collate)
     len_tl = len(train_loader)
     val_loss = 0
     patience = 0
@@ -107,17 +105,18 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
             running_loss += sum_loss.detach().item()
             if progress_bar:
                 progress.set_description(f"[{epoch+1}/{CFG.epochs}/{agent.trained_epochs}] [{i+1}/{len_tl}] loss: {running_loss/(i+1)} val_loss: {val_loss}")
-        val_loss = val_value_model(agent,val_loader,optimizer,criterion,bce_criterion)
-        if (epoch+1) % CFG.every_x_epochs == 0:
-            optimizer.param_groups[0]['lr'] *= CFG.mult_lr
-        if val_loss < agent.best_val_loss and agent.elo_diff_from_random > 0:
-            agent.best_val_loss = val_loss
-            patience = 0
-            agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
-        else:
-            patience += 1
-            if patience >= max_patience:
-                break
+        if val_loader is not None:
+            val_loss = val_value_model(agent,val_loader,optimizer,criterion,bce_criterion)
+            if (epoch+1) % CFG.every_x_epochs == 0:
+                optimizer.param_groups[0]['lr'] *= CFG.mult_lr
+            if val_loss < agent.best_val_loss and agent.elo_diff_from_random > 0:
+                agent.best_val_loss = val_loss
+                patience = 0
+                agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
+            else:
+                patience += 1
+                if patience >= max_patience:
+                    break
     return None
 
 def get_batch_datasets():
@@ -125,17 +124,17 @@ def get_batch_datasets():
     val_dataset = BatchMemoryDataset(CFG.memory_batch[3:6],CFG.val_last_index)
     return train_dataset,val_dataset
 
-def get_pos_tensors_datasets():
-    file_list = [x for x in os.listdir(CFG.dataset_dir_path) if x.endswith(".pt")]
-    index_array = np.array([j for j in range(len(file_list))])
-    if (episode+1) % n_accumulate == 0 or episode == 0:
-        kf = KFold(n_splits=10)
-        splits = list(kf.split(index_array))
-        train_idxs,val_idxs = splits[0]
-        val_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = val_idxs)
-    else:
-        train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
-    train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
+def get_tensors_from_files_datasets(dir_path,file_ending=".pt",train_idx=None,val_idxs=None):
+    val_dataset = CustomMatchDataset(dirpath = dir_path,idxs = val_idxs)
+    train_dataset = CustomMatchDataset(dirpath = dir_path,idxs = train_idxs)
+    return train_dataset,val_dataset
+
+def get_data_loader(train_dataset,val_dataset=None,batch_size = 1):
+    train_loader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
+    if not val_dataset is None:
+        val_loader = DataLoader(val_dataset, batch_size=batch_size,drop_last=False, num_workers=0,collate_fn=my_collate)
+    return train_loader,val_loader
+
 
 
 
@@ -175,13 +174,12 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 kf = KFold(n_splits=10)
                 splits = list(kf.split(index_array))
                 train_idxs,val_idxs = splits[0]
-                val_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = val_idxs)
             else:
                 train_idxs = [index_array[x] for x in range(len(index_array)) if x not in val_idxs]
-            train_dataset = CustomMatchDataset(dirpath = CFG.dataset_dir_path,idxs = train_idxs)
+            train_dataset,val_dataset = get_tensors_from_files_datasets(CFG.dataset_dir_path,file_ending=".pt",train_idx=train_idxs,val_idxs=val_idxs)
         else:
             train_dataset,val_dataset = get_batch_datasets()
-            
+        
         train_value_model(agent,train_dataset,val_dataset)
         agent.value_model.eval()
         val_agents = validate_outcomes(agent,val_agents=val_agents)
