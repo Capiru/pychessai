@@ -85,6 +85,7 @@ def train_value_model(agent,train_dataset,val_dataset=None,progress_bar = True):
         agent.value_model.train()
         running_loss = 0.0
         for i, (inputs, labels,policy_labels) in enumerate(train_loader, 0):
+            print(inputs.size())
             sum_loss = 0
             # get the inputs; data is a list of [inputs, labels]
             inputs = inputs.to(CFG.DEVICE)
