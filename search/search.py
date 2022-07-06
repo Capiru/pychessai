@@ -264,6 +264,10 @@ class MonteCarloSearchNode:
             self.node_value = node_value
             self.legal_actions = legal_actions
             self.policy_priors = policy_priors
+        ind = 0
+        if self.legal_actions is not None:
+            for i in range(len(self.legal_actions)):
+                self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
         self.untried_actions = copy.deepcopy(self.legal_actions)
         self.last_child_move = None
         self.best_child_score = -np.inf
@@ -271,7 +275,7 @@ class MonteCarloSearchNode:
         if not is_terminal_node:
             for i in range(len(self.legal_actions)):
                 self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
-        self.choose_move = self.choose_move_random
+        self.choose_move = self.choose_move_from_ucb_weights
         
 
     def fill_untried_actions(self):
@@ -361,7 +365,7 @@ class MonteCarloSearchNode:
         return self.legal_actions[index],self.policy_priors[index]
 
     def choose_move_from_ucb_weights(self):
-        move = np.random.choice(self.current_ucb_scores.keys(),size=1,p=nn.Softmax(self.current_ucb_scores.values()))[0]
+        move = np.random.choice(list(self.current_ucb_scores.keys()),size=1,p=torch.softmax(torch.FloatTensor(list(self.current_ucb_scores.values())),dim=0).numpy())[0]
         return move,self.current_ucb_scores[move]
 
     def choose_best_ucb(self):
@@ -384,41 +388,41 @@ class MonteCarloSearchNode:
                 CFG.val_last_policy_index = 0
 
     def search(self,n_simulations):
-        try:
-            for i in range(n_simulations):
-                current_node = self
-                found_unexplored_node = False
-                terminal_nodes_found = 0
-                while not found_unexplored_node:
-                    ##if current_node.is_fully_expanded():
-                    ##    current_node.fill_untried_actions()
-                    ##    move = current_node.choose_move()
-                    ##else:
-                    move,prior = current_node.choose_move() ## find move change this
-                    current_node.last_child_move = move
-                    try:
-                        children_node = current_node.children[move]
-                        if not children_node.is_terminal_node:
-                            current_node = children_node
-                            terminal_nodes_found = 0
-                        else:
-                            terminal_nodes_found += 1
-                            if terminal_nodes_found == len(current_node.legal_actions):
-                                break
-                    except:
-                        children_node = current_node.expand(self.agent,move,prior)
-                        found_unexplored_node = True
+
+        for i in range(n_simulations):
+            current_node = self
+            found_unexplored_node = False
+            terminal_nodes_found = 0
+            while not found_unexplored_node:
+                ##if current_node.is_fully_expanded():
+                ##    current_node.fill_untried_actions()
+                ##    move = current_node.choose_move()
+                ##else:
+                move,prior = current_node.choose_move() ## find move change this
+                current_node.last_child_move = move
+                try:
+                    children_node = current_node.children[move]
+                    if not children_node.is_terminal_node:
+                        current_node = children_node
                         terminal_nodes_found = 0
-                        break
-                children_node.backpropagate(children_node.node_value)
-            ### Add the best_child to the memory batch
-            best_child_score, best_child = self.find_best_child()
-            if self.agent.training and CFG.save_batch_to_device:
-                self.save_to_memory()
-            return best_child_score, best_child
-        except Exception as e:
-            print(current_node.legal_actions)
-            print(current_node.board,"\n",current_node.board.move_stack)
-            print(children_node.board,"\n")
-            print(e)
-            raise BaseException("Error in search")
+                    else:
+                        terminal_nodes_found += 1
+                        if terminal_nodes_found == len(current_node.legal_actions):
+                            break
+                except:
+                    children_node = current_node.expand(self.agent,move,prior)
+                    found_unexplored_node = True
+                    terminal_nodes_found = 0
+                    break
+            children_node.backpropagate(children_node.node_value)
+        ### Add the best_child to the memory batch
+        best_child_score, best_child = self.find_best_child()
+        if self.agent.training and CFG.save_batch_to_device:
+            self.save_to_memory()
+        return best_child_score, best_child
+        # except Exception as e:
+        #     print(current_node.legal_actions)
+        #     print(current_node.board,"\n",current_node.board.move_stack)
+        #     print(children_node.board,"\n")
+        #     print(e)
+        #     raise BaseException("Error in search")
