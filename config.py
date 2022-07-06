@@ -24,10 +24,10 @@ class CFG:
 
     policy_output_size = 4672
 
-    save_tensor_to_disk = True
+    save_tensor_to_disk = False
     save_batch_to_device = True
     validate_match = True
-    val_every_x_games = 30000
+    val_every_x_games = 5
     if save_batch_to_device:
         memory_batch = [torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size)),
                         torch.zeros((batch_size,n_planes,board_size,board_size)),torch.zeros((batch_size,1)),torch.zeros((batch_size,policy_output_size))]
@@ -42,8 +42,9 @@ class CFG:
     LOSS_VALUE = -1
     DRAW_VALUE = -0.01
     RANDOM_START = 4
+    weight_policy = 0
 
-    cloud_operations = True
+    cloud_operations = False
     model_dir_path = "/content/drive/MyDrive/projects/chessai/models/"
     dataset_dir_path = "/content/drive/MyDrive/projects/chessai/datasets/"
     max_dataset_size = 25 ### in Gb

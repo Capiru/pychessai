@@ -311,7 +311,7 @@ def get_match_as_fen_tensor(board,winner,player_white = True):
         board.pop()
         if winner is None:
             target_tensor[i] = CFG.DRAW_VALUE
-        elif not (winner ^ (player_white and board.turn)):
+        elif not (winner ^ (player_white)):
             target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i)
         else:
             target_tensor[i] = -decaying_function_cosdecay(match_len,match_len-i)

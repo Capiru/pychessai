@@ -96,7 +96,7 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
             value,policy = agent.value_model(inputs)
             value_loss = criterion(value, labels)
             policy_loss = bce_criterion(policy,policy_labels)
-            sum_loss = value_loss + policy_loss
+            sum_loss = 1.0 * value_loss + CFG.weight_policy * policy_loss
             sum_loss.backward()
             optimizer.step()
 
@@ -129,9 +129,18 @@ def get_tensors_from_files_datasets(dir_path,file_ending=".pt",train_idxs=None,v
     return train_dataset,val_dataset
 
 def get_data_loader(train_dataset,val_dataset=None,batch_size = 1):
-    train_loader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
-    if not val_dataset is None:
-        val_loader = DataLoader(val_dataset, batch_size=batch_size,drop_last=False, num_workers=0,collate_fn=my_collate)
+    if CFG.save_tensor_to_disk and CFG.cloud_operations:
+        train_loader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
+        if not val_dataset is None:
+            val_loader = DataLoader(val_dataset, batch_size=batch_size,drop_last=False, num_workers=0,collate_fn=my_collate)
+        else:
+            val_loader = None
+    else:
+        train_loader = DataLoader(train_dataset, batch_size=CFG.batch_size,shuffle=True,drop_last=False, num_workers=0)
+        if not val_dataset is None:
+            val_loader = DataLoader(val_dataset, batch_size=CFG.batch_size,drop_last=False, num_workers=0)
+        else:
+            val_loader = None
     return train_loader,val_loader
 
 
