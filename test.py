@@ -13,11 +13,11 @@ def training_test(agent):
     CFG.max_patience = 100
     outcome,match_tensor = match(agent,NegaMaxAgent(save_policy=True),save_tensor=True)
     save_tensor(match_tensor)
-    print(CFG.last_index)
+    print(CFG.memory_batch[1])
     train_dataset = BatchMemoryDataset(CFG.memory_batch[0:3],CFG.last_index)
     train_loader,val_loader = get_data_loader(train_dataset,val_dataset=None,batch_size = 1)
     train_value_model(agent,train_loader)
-    print(agent.value_model(match_tensor[0].to(CFG.DEVICE)))
+    print(agent.value_model(match_tensor[0].to(CFG.DEVICE))[0])
     return None
 
 def find_checkmate_in_1(agent):

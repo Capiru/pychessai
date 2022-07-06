@@ -17,7 +17,8 @@ class CFG:
     every_x_epochs = 1000
     mult_lr = 0.5
 
-    weight_decay = 1e-8
+    weight_decay = 1e-4
+    
     epochs = 20
     patience = 10
     batch_size = 2048
@@ -42,7 +43,8 @@ class CFG:
     LOSS_VALUE = -1
     DRAW_VALUE = -0.01
     RANDOM_START = 4
-    weight_policy = 0
+    weight_policy = 1
+    weight_value = 1
 
     cloud_operations = False
     model_dir_path = "/content/drive/MyDrive/projects/chessai/models/"

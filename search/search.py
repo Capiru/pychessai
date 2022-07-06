@@ -360,6 +360,10 @@ class MonteCarloSearchNode:
         index = np.random.choice([i for i in range(len(self.legal_actions))],size=1,p=self.policy_priors.cpu().detach().numpy())[0]
         return self.legal_actions[index],self.policy_priors[index]
 
+    def choose_move_from_ucb_weights(self):
+        move = np.random.choice(self.current_ucb_scores.keys(),size=1,p=nn.Softmax(self.current_ucb_scores.values()))[0]
+        return move,self.current_ucb_scores[move]
+
     def choose_best_ucb(self):
         score,move = self.find_best_child()
         return move

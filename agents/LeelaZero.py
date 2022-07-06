@@ -47,12 +47,13 @@ class LeelaZero(nn.Module):
             x += residual
             residual = x
             x = torch.relu(x)
+        value = torch.flatten(x, 1)
+        value = torch.relu(self.fc_head(value))
+        value = torch.tanh(self.value_head(value))
         policy = self.policy_conv1(x)
         policy = torch.flatten(policy, 1)
         policy = self.policy_fc(policy)
-        value = torch.flatten(x, 1)
-        value = self.fc_head(value)
-        value = torch.tanh(self.value_head(value))
+        
         return value,policy
     
     def get_board_evaluation(self,board,is_player_white):

@@ -11,7 +11,7 @@ from test import *
 import torch
 
 #board = ch.Board('rn2kb1r/p1qBpppp/2pP3N/1p6/Q2p3P/2P3pR/PP1nPP2/R1B1KBN1 b Qkq - 2 8')
-agent_one = LeelaZeroAgent(n_simulations = 30,res_blocks = 15,filters = 192)
+agent_one = LeelaZeroAgent(n_simulations = 30,res_blocks = 15,filters = 194)
 agent_one.value_model.to(CFG.DEVICE)
 #agent_two = NegaMaxAgent(depth = 2,save_policy= True)
 agent_two = MinimaxPruningSimplePolicyAgent(depth = 2,save_policy= True)

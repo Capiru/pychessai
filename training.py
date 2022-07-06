@@ -81,6 +81,8 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
     for epoch in progress:  # loop over the dataset multiple times
         agent.trained_epochs += 1
         agent.value_model.train()
+        running_value_loss = 0.0
+        running_policy_loss = 0.0
         running_loss = 0.0
         for i, (inputs, labels,policy_labels) in enumerate(train_loader, 0):
             sum_loss = 0
@@ -94,16 +96,19 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
 
             # forward + backward + optimize
             value,policy = agent.value_model(inputs)
-            value_loss = criterion(value, labels)
+            
             policy_loss = bce_criterion(policy,policy_labels)
-            sum_loss = 1.0 * value_loss + CFG.weight_policy * policy_loss
+            value_loss = criterion(value, labels)
+            sum_loss = value_loss + policy_loss
             sum_loss.backward()
             optimizer.step()
-
+            
             # print statistics
+            running_value_loss += value_loss.detach().item()
+            running_policy_loss += policy_loss.detach().item()
             running_loss += sum_loss.detach().item()
             if progress_bar:
-                progress.set_description(f"[{epoch+1}/{CFG.epochs}/{agent.trained_epochs}] [{i+1}/{len_tl}] loss: {running_loss/(i+1)} val_loss: {val_loss}")
+                progress.set_description(f"[{epoch+1}/{CFG.epochs}/{agent.trained_epochs}] [{i+1}/{len_tl}] value_loss: {running_value_loss/(i+1)} policy_loss: {running_policy_loss/(i+1)} sum_loss: {running_loss/(i+1)}  val_loss: {val_loss}")
         if val_loader is not None:
             val_loss = val_value_model(agent,val_loader,optimizer,criterion,bce_criterion)
             if (epoch+1) % CFG.every_x_epochs == 0:
@@ -130,7 +135,7 @@ def get_tensors_from_files_datasets(dir_path,file_ending=".pt",train_idxs=None,v
 
 def get_data_loader(train_dataset,val_dataset=None,batch_size = 1):
     if CFG.save_tensor_to_disk and CFG.cloud_operations:
-        train_loader = DataLoader(train_dataset, batch_size=batch_size,shuffle=True,drop_last=False, num_workers=0,collate_fn=my_collate)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size,shuffle=False,drop_last=False, num_workers=0,collate_fn=my_collate)
         if not val_dataset is None:
             val_loader = DataLoader(val_dataset, batch_size=batch_size,drop_last=False, num_workers=0,collate_fn=my_collate)
         else:
