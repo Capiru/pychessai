@@ -294,7 +294,7 @@ class MonteCarloSearchNode:
     def get_board_reward(self):
         if self.board.is_game_over():
             if self.board.is_checkmate():
-                if not self.board.outcome().winner ^ self.player_white:
+                if self.board.outcome().winner ^ self.player_white:
                     self.is_terminal_node = True
                     return CFG.WIN_VALUE,None
                 else:
@@ -351,7 +351,7 @@ class MonteCarloSearchNode:
         #### needs to change to select based on probability or UCB
         next_state = self.board.push(move)
         score,priors,legal_moves = self.get_move_from_policy()
-        if not self.board.turn ^ self.player_white:
+        if self.board.turn ^ self.player_white:
             score = -score
         child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
                                         node_value = score,policy_priors = priors,legal_actions = legal_moves,is_terminal_node=self.is_terminal_node)
@@ -419,6 +419,8 @@ class MonteCarloSearchNode:
         best_child_score, best_child = self.find_best_child()
         if self.agent.training and CFG.save_batch_to_device:
             self.save_to_memory()
+        if CFG.TEST:
+            print(self.current_ucb_scores)
         return best_child_score, best_child
         # except Exception as e:
         #     print(current_node.legal_actions)

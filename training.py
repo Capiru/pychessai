@@ -97,8 +97,8 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
             # forward + backward + optimize
             value,policy = agent.value_model(inputs)
             
-            policy_loss = bce_criterion(policy,policy_labels)
-            value_loss = criterion(value, labels)
+            policy_loss = CFG.weight_policy * bce_criterion(policy,policy_labels)
+            value_loss = CFG.weight_value * criterion(value, labels)
             sum_loss = value_loss + policy_loss
             sum_loss.backward()
             optimizer.step()
@@ -165,10 +165,14 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 pass
             if update_base_agent:
                 base_agent = agent.get_deepcopy()
-            file_list = os.listdir(CFG.dataset_dir_path)
-            for item in file_list:
-                if item.endswith(".pt"):
-                    os.remove(os.path.join(CFG.dataset_dir_path, item))
+            if CFG.save_batch_to_device:
+                try:
+                    file_list = os.listdir(CFG.dataset_dir_path)
+                    for item in file_list:
+                        if item.endswith(".pt"):
+                            os.remove(os.path.join(CFG.dataset_dir_path, item))
+                except:
+                    pass
         agent.value_model.train()
         CFG.batch_full = False
         agent.training = True

@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class CFG:
     DEBUG = False
-    TEST = True
+    TEST = False
 
     board_size = 8 ## total length and height, total squares = 64
     n_players = 2
@@ -43,7 +43,7 @@ class CFG:
     LOSS_VALUE = -1
     DRAW_VALUE = -0.01
     RANDOM_START = 4
-    weight_policy = 1
+    weight_policy = 0
     weight_value = 1
 
     cloud_operations = False
