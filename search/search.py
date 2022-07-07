@@ -293,15 +293,13 @@ class MonteCarloSearchNode:
 
     def get_board_reward(self):
         if self.board.is_game_over():
+            self.is_terminal_node = True
             if self.board.is_checkmate():
                 if self.board.outcome().winner ^ self.player_white:
-                    self.is_terminal_node = True
                     return CFG.WIN_VALUE,None
                 else:
-                    self.is_terminal_node = True
                     return CFG.LOSS_VALUE,None
             else:
-                self.is_terminal_node = True
                 return CFG.DRAW_VALUE,None
         else:
             self.is_terminal_node = False
@@ -351,9 +349,8 @@ class MonteCarloSearchNode:
         #### needs to change to select based on probability or UCB
         next_state = self.board.push(move)
         score,priors,legal_moves = self.get_move_from_policy()
-        if self.board.turn ^ self.player_white:
-            score = -score
-        child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = self.player_white,parent = self,parent_move = move,
+        score = -score
+        child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = not self.player_white,parent = self,parent_move = move,
                                         node_value = score,policy_priors = priors,legal_actions = legal_moves,is_terminal_node=self.is_terminal_node)
         self.children[move] = child_node
         self.is_terminal_node = False

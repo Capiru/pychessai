@@ -293,6 +293,9 @@ def decaying_function_cosdecay(l,x):
     return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
 
 def get_match_as_fen_tensor(board,winner,player_white = True):
+    flip_board = np.random.choice([False,True],size=1,p = [1-CFG.random_flip_chance,CFG.random_flip_chance])[0]
+    if flip_board:
+        player_white = not player_white
     pytorch = True
     match_len = len(board.move_stack)-CFG.RANDOM_START
     num_pieces = 6
