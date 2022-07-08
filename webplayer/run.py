@@ -4,8 +4,9 @@ import sys
 import os
 import argparse
 
-sys.path.append('../chessrl/')
 
+sys.path.append('c:\\Users\\gabri\\Documents\\pychessai')
+pytorch = True
 
 def gpu_initializer():
     """ This is needed to initialize TF inside the GPU child
@@ -17,8 +18,8 @@ def gpu_initializer():
         os.environ['CUDA_VISIBLE_DEVICES'] = '0'
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-
-gpu_initializer()
+if not pytorch:
+    gpu_initializer()
 
 
 import gamewrapper  # noqa:E402

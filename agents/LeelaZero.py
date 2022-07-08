@@ -72,6 +72,7 @@ class LeelaZeroAgent(object):
         self.batch_size = batch_size
         self.epochs = epochs
         self.is_white = is_white
+        self.color = is_white
         self.training = training
         self.policy_output_size = policy_output_size
         self.positions = 0
