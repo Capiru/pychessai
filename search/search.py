@@ -265,9 +265,11 @@ class MonteCarloSearchNode:
             self.legal_actions = legal_actions
             self.policy_priors = policy_priors
         ind = 0
+        self.untried_actions_dic = {}
         if self.legal_actions is not None:
             for i in range(len(self.legal_actions)):
                 self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
+                self.untried_actions_dic[self.legal_actions[i]] = self.policy_priors[i]
         self.untried_actions = copy.deepcopy(self.legal_actions)
         self.last_child_move = None
         self.best_child_score = -np.inf
@@ -295,7 +297,7 @@ class MonteCarloSearchNode:
         if self.board.is_game_over():
             self.is_terminal_node = True
             if self.board.is_checkmate():
-                if self.board.outcome().winner ^ self.player_white:
+                if not self.board.outcome().winner ^ self.player_white:
                     return CFG.WIN_VALUE,None
                 else:
                     return CFG.LOSS_VALUE,None
@@ -303,13 +305,15 @@ class MonteCarloSearchNode:
                 return CFG.DRAW_VALUE,None
         else:
             self.is_terminal_node = False
+            if CFG.TEST:
+                return rival_eval(self.board,self.player_white),map_moves_to_policy(list(self.board.legal_moves),self.board,flatten = True)[0].to(CFG.DEVICE)
             return self.agent.value_model.get_board_evaluation(self.board,self.player_white)
     
     def backpropagate(self,result):
         self.visit_count += 1
         self.value_sum += result
         if self.parent:
-            self.parent.backpropagate(self.value_score())
+            self.parent.backpropagate(-self.value_score())
             self.parent.update_ucb_scores(self.parent)
         else:
             self.update_ucb_scores(node=self)
@@ -349,7 +353,6 @@ class MonteCarloSearchNode:
         #### needs to change to select based on probability or UCB
         next_state = self.board.push(move)
         score,priors,legal_moves = self.get_move_from_policy()
-        score = -score
         child_node = MonteCarloSearchNode(agent = self.agent,prior = prior,board = self.board.copy(),player_white = not self.player_white,parent = self,parent_move = move,
                                         node_value = score,policy_priors = priors,legal_actions = legal_moves,is_terminal_node=self.is_terminal_node)
         self.children[move] = child_node
@@ -363,7 +366,11 @@ class MonteCarloSearchNode:
 
     def choose_move_from_ucb_weights(self):
         move = np.random.choice(list(self.current_ucb_scores.keys()),size=1,p=torch.softmax(torch.FloatTensor(list(self.current_ucb_scores.values())),dim=0).numpy())[0]
-        return move,self.current_ucb_scores[move]
+        return move,self.current_ucb_scores[move] ### Maybe this needs to be prior not UCB
+
+    def choose_move_untried_actions(self):
+        move = self.untried_actions.pop()
+        return move,self.untried_actions_dic[move]
 
     def choose_best_ucb(self):
         score,move = self.find_best_child()
@@ -391,11 +398,10 @@ class MonteCarloSearchNode:
             found_unexplored_node = False
             terminal_nodes_found = 0
             while not found_unexplored_node:
-                ##if current_node.is_fully_expanded():
-                ##    current_node.fill_untried_actions()
-                ##    move = current_node.choose_move()
-                ##else:
-                move,prior = current_node.choose_move() ## find move change this
+                if not current_node.is_fully_expanded():
+                    move,prior = current_node.choose_move_untried_actions()
+                else:
+                    move,prior = current_node.choose_move() ## find move change this
                 current_node.last_child_move = move
                 try:
                     children_node = current_node.children[move]

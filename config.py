@@ -39,8 +39,8 @@ class CFG:
         batch_full = False
         count_since_last_val_match = 0
         
-    WIN_VALUE = 1
-    LOSS_VALUE = -1
+    WIN_VALUE = 100000
+    LOSS_VALUE = -100000
     DRAW_VALUE = -0.01
     RANDOM_START = 4
     weight_policy = 1
