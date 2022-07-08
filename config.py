@@ -49,7 +49,7 @@ class CFG:
 
     cloud_operations = True
     model_dir_path = "G:/Meine Ablage/projects/chessai/models/"
-    dataset_dir_path = "G:/Meine Ablage/projects/projects/chessai/datasets/"
+    dataset_dir_path = "G:/Meine Ablage/projects/chessai/datasets/"
     max_dataset_size = 25 ### in Gb
 
     GPU = torch.cuda.is_available()

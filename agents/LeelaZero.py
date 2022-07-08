@@ -86,14 +86,17 @@ class LeelaZeroAgent(object):
 
     def choose_move(self,board):
         self.board = board
-        self.parent_node = MonteCarloSearchNode(self,None,self.is_white,board)
+        self.parent_node = MonteCarloSearchNode(self,None,not self.is_white,board)
         score,move = self.parent_node.search(n_simulations = self.n_simulations)
         # try:
         #     self.parent_node = self.parent_node.children[move]
         # except:
         #     self.parent_node = None
         self.positions += self.n_simulations
-        self.eval = score.detach().cpu()
+        try:
+            self.eval = score.detach().cpu()
+        except:
+            self.eval = score
         return [move]
     
     def get_model_name(self):

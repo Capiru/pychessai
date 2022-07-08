@@ -20,6 +20,18 @@ def training_test(agent):
     print(agent.value_model(match_tensor[0].to(CFG.DEVICE))[0])
     return None
 
+def find_hanging_piece(agent):
+    fen = "r3rqk1/2n2pp1/2p2n1p/p2p4/1p1P1Q2/1N1P2NP/PP3PP1/3RR1K1 w - - 6 24"
+    board = ch.Board(fen)
+    agent.is_white = board.turn
+    agent.n_simulations = 300
+    move = agent.choose_move(board)
+    if ch.Move.from_uci("f4c7") == move[0]:
+        return None
+    else:
+        print(move)
+        raise BaseException("Wrong move")
+
 def find_checkmate_in_1(agent):
     fen = "3r2k1/p4ppp/8/1p1PN2P/4Q3/P3KP2/BPr3qP/4R2R b - - 4 23"
     board = ch.Board(fen)

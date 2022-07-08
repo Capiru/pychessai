@@ -285,13 +285,13 @@ class MonteCarloSearchNode:
         return self.untried_actions
 
     def prior_score(self):
-        return self.prior * math.sqrt(self.parent.visit_count) / (self.visit_count + 1)
+        return math.sqrt(2) * math.sqrt((self.parent.visit_count) / (self.visit_count))
 
     def value_score(self):
-        return self.value_sum / self.visit_count
+        return self.value_sum / self.visit_count 
 
     def ucb_score(self):
-        return self.value_score() + self.prior_score()
+        return -self.value_score() + self.prior_score()
 
     def get_board_reward(self):
         if self.board.is_game_over():
@@ -323,12 +323,22 @@ class MonteCarloSearchNode:
         node.current_ucb_scores[node.last_child_move] = child_ucb
 
     def find_best_child(self):
+        most_visits = 0
+        most_visited = None
         for k,v in self.current_ucb_scores.items():
+            try:
+                if self.children[k].visit_count > most_visits:
+                    most_visits = self.children[k].visit_count
+                    most_visited = k
+            except:
+                pass
             if v > self.best_child_score:
                 self.best_child_score = v
                 self.best_child = k
-
-        return self.best_child_score,self.best_child
+        if self.best_child_score > 10:
+            return self.best_child_score,self.best_child
+        return self.children[most_visited].node_value,most_visited
+        
 
     def is_fully_expanded(self):
         return len(self.untried_actions) == 0
