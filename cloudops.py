@@ -25,8 +25,9 @@ def register_model(model_save_path,file_extension = ".pth",cleanup = False):
     ### Sort by elo diff
     df = df.sort_values(by=["elo_diff"],ascending=False)
     ### Register model
-    shutil.copy(os.path.join(model_save_path,df.iloc[0]["val_loss"]+"-"+df.iloc[0]["elo_diff"]+"-"+df.iloc[0]["filters"]+df.iloc[0]["res_blocks"]+file_extension),os.path.join(model_save_path,f"{elo_diff}-best_model.pth"))
-    if cleanup or dir_size(CFG.model_dir_path) > CFG.model_dir_size_limit:
-        ### Delete all models except the best one
-        for i in range(len(df.index)):
-            os.remove(os.path.join(model_save_path,df.iloc[i]["val_loss"]+"-"+df.iloc[i]["elo_diff"]+"-"+df.iloc[i]["filters"]+df.iloc[i]["res_blocks"]+file_extension))
+    if len(df.index) > 0:
+        shutil.copy(os.path.join(model_save_path,df.iloc[0]["val_loss"]+"-"+df.iloc[0]["elo_diff"]+"-"+df.iloc[0]["filters"]+df.iloc[0]["res_blocks"]+file_extension),os.path.join(model_save_path,f"{elo_diff}-best_model.pth"))
+        if cleanup or dir_size(CFG.model_dir_path) > CFG.model_dir_size_limit:
+            ### Delete all models except the best one
+            for i in range(len(df.index)):
+                os.remove(os.path.join(model_save_path,df.iloc[i]["val_loss"]+"-"+df.iloc[i]["elo_diff"]+"-"+df.iloc[i]["filters"]+df.iloc[i]["res_blocks"]+file_extension))
