@@ -10,6 +10,8 @@ from move_choice import random_choice
 from cloudops import dir_size
 import os
 
+from policy import map_moves_to_policy
+
 def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     df = pd.read_csv(openings_path)
     opening_len = len(df)
@@ -292,7 +294,7 @@ def get_board_as_tensor(board,player_white):
 def decaying_function_cosdecay(l,x):
     return math.sin(math.pi*(x/l)**3-math.pi/2)/2+0.5
 
-def get_match_as_fen_tensor(board,winner,player_white = True):
+def get_match_as_fen_tensor(board,winner,player_white = True,save_policy = False):
     flip_board = np.random.choice([False,True],size=1,p = [1-CFG.random_flip_chance,CFG.random_flip_chance])[0]
     if flip_board:
         player_white = not player_white
@@ -309,16 +311,21 @@ def get_match_as_fen_tensor(board,winner,player_white = True):
       input_tensor_size = (match_len,board_size,board_size,total_num_planes)
     target_tensor = torch.zeros((match_len,1))
     tensor = torch.zeros(input_tensor_size)
+    if save_policy:
+        policy_tensor = torch.zeros((match_len,73*8*8))
     for i in range(match_len):
         tensor[i,:,:,:] = get_board_as_tensor(board,player_white)
-        board.pop()
+        policy_move = board.pop()
         if winner is None:
             target_tensor[i] = CFG.DRAW_VALUE
         elif not (winner ^ (player_white)):
             target_tensor[i] = decaying_function_cosdecay(match_len,match_len-i)
         else:
             target_tensor[i] = -decaying_function_cosdecay(match_len,match_len-i)
-        
+        if save_policy:
+            policy_tensor[i,:] = map_moves_to_policy([policy_move],board,flatten=True)[0]
+    if save_policy:
+        return [tensor,target_tensor,policy_tensor]
     return [tensor.to(CFG.DEVICE),target_tensor.to(CFG.DEVICE)]
 
 

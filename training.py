@@ -113,10 +113,11 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
             val_loss = val_value_model(agent,val_loader,optimizer,criterion,bce_criterion)
             if (epoch+1) % CFG.every_x_epochs == 0:
                 optimizer.param_groups[0]['lr'] *= CFG.mult_lr
-            if val_loss < agent.best_val_loss and agent.elo_diff_from_random > 0:
+            if val_loss < agent.best_val_loss:
                 agent.best_val_loss = val_loss
                 patience = 0
-                agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
+                if agent.elo_diff_from_random > 0:
+                    agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
             else:
                 patience += 1
                 if patience >= max_patience:
@@ -133,8 +134,8 @@ def get_tensors_from_files_datasets(dir_path,file_ending=".pt",train_idxs=None,v
     train_dataset = CustomMatchDataset(dirpath = dir_path,idxs = train_idxs)
     return train_dataset,val_dataset
 
-def get_data_loader(train_dataset,val_dataset=None,batch_size = 1):
-    if CFG.save_tensor_to_disk and CFG.cloud_operations:
+def get_data_loader(train_dataset,val_dataset=None,batch_size = 1,load_matches = False):
+    if (CFG.save_tensor_to_disk and CFG.cloud_operations) or load_matches:
         train_loader = DataLoader(train_dataset, batch_size=batch_size,shuffle=False,drop_last=False, num_workers=0,collate_fn=my_collate)
         if not val_dataset is None:
             val_loader = DataLoader(val_dataset, batch_size=batch_size,drop_last=False, num_workers=0,collate_fn=my_collate)
@@ -148,6 +149,26 @@ def get_data_loader(train_dataset,val_dataset=None,batch_size = 1):
             val_loader = None
     return train_loader,val_loader
 
+def get_master_datasets():
+    file_list = [x for x in os.listdir(CFG.master_dataset_path) if x.endswith(".pt")]
+    index_array = np.array([j for j in range(len(file_list))])
+    kf = KFold(n_splits=100,shuffle=True,random_state=42)
+    splits = list(kf.split(index_array))
+    train_idxs,val_idxs = splits[0]
+    train_dataset = MasterDataset(train_idxs)
+    val_dataset = MasterDataset(val_idxs)
+    return train_dataset,val_dataset
+
+def train_master_games(agent):
+    CFG.patience = 30
+    CFG.epochs = 50
+    train_dataset,val_dataset = get_master_datasets()
+    train_loader,val_loader = get_data_loader(train_dataset,val_dataset,load_matches=True,batch_size=32)
+    train_value_model(agent,train_loader,val_loader)
+    CFG.epochs = 20
+    CFG.patience = 5
+    return None
+
 
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
@@ -157,6 +178,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         update_base_agent = True
         base_agent = agent.get_deepcopy()
     val_agents = {0:val_agent}
+    train_master_games(agent)
     for episode in range(n_episodes):
         if (episode+1) % n_accumulate == 0:
             try:
