@@ -45,7 +45,8 @@ class CFG:
     RANDOM_START = 0
     weight_policy = 1
     weight_value = 1
-    random_flip_chance = 0.5
+    random_flip_chance = 0.10
+    start_master_train = True
 
     cloud_operations = True
     model_dir_path = "G:/Meine Ablage/projects/chessai/models/"
@@ -53,6 +54,8 @@ class CFG:
     master_dataset_path = "G:/Meine Ablage/projects/chessai/datasets/master/"
     pgn_path = "./datasets"
     max_dataset_size = 25 ### in Gb
+    model_dir_size_limit = 10 ### in Gb
+    load_best_model = True
 
     GPU = torch.cuda.is_available()
     if GPU:

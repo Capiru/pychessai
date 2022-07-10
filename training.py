@@ -159,26 +159,40 @@ def get_master_datasets():
     val_dataset = MasterDataset(val_idxs)
     return train_dataset,val_dataset
 
-def train_master_games(agent):
-    CFG.patience = 30
-    CFG.epochs = 50
+def train_master_games(agent,patience,epochs):
+    prev_patience = CFG.patience
+    prev_epochs = CFG.epochs
+    CFG.patience = patience
+    CFG.epochs = epochs
+
     train_dataset,val_dataset = get_master_datasets()
     train_loader,val_loader = get_data_loader(train_dataset,val_dataset,load_matches=True,batch_size=32)
     train_value_model(agent,train_loader,val_loader)
-    CFG.epochs = 20
-    CFG.patience = 5
+    CFG.epochs = prev_epochs
+    CFG.patience = prev_patience
     return None
 
 
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
-    if val_agent is None:
+    if CFG.load_best_model:
+        f = [x for x in os.listdir(CFG.model_dir_path) if x.endswith("-best_model.pth")]
+        elo_diff = f[0].split("-")[0]
+        state_dict = torch.load(os.path.join(CFG.model_dir_path,f[0]))
+        agent.value_model.load_state_dict(state_dict)
+        val_agent = agent.get_deepcopy()
+        val_agent.elo_diff_from_random = int(elo_diff)
+        agent.elo_diff_from_random = int(elo_diff)
+    elif val_agent is None:
         val_agent = RandomAgent()
     if base_agent is None:
         update_base_agent = True
         base_agent = agent.get_deepcopy()
+    else:
+        CFG.random_flip_chance = 0.5
     val_agents = {0:val_agent}
-    train_master_games(agent)
+    if CFG.start_master_train:
+        train_master_games(agent,5,50)
     for episode in range(n_episodes):
         if (episode+1) % n_accumulate == 0:
             try:
@@ -221,4 +235,9 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         val_agents = validate_outcomes(agent,val_agents=val_agents)
         if CFG.cloud_operations:
             get_agent_pool_df(model_save_path = CFG.model_dir_path,file_extension = ".pth")
+            if dir_size(CFG.dataset_dir_path) > 25:
+                file_list = os.listdir(CFG.dataset_dir_path)
+                for item in file_list:
+                    if item.endswith(".pt"):
+                        os.remove(os.path.join(CFG.dataset_dir_path, item))
     return None
