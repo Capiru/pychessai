@@ -176,7 +176,7 @@ def train_master_games(agent,patience,epochs):
 def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episodes = 100,n_accumulate = 10):
     update_base_agent = False
     if CFG.load_best_model:
-        register_model(model_save_path,file_extension = ".pth",cleanup = False)
+        register_model(CFG.model_dir_path,file_extension = ".pth",cleanup = False)
         f = [x for x in os.listdir(CFG.model_dir_path) if x.endswith("-best_model.pth")]
         elo_diff = f[0].split("-")[0]
         state_dict = torch.load(os.path.join(CFG.model_dir_path,f[0]))
