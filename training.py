@@ -53,7 +53,7 @@ def validate_outcomes(agent,val_agents={},n_tries = 10,elo_save_treshold = 200):
         else:
             continue
     agent.elo_diff_from_random = current_elo + val_elo_diff
-    agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
+    agent.save_model()
     val_agent = agent.get_deepcopy()
     print("Saved model with an elo diff from random = "+str(agent.elo_diff_from_random))
     val_agents[agent.elo_diff_from_random] = val_agent
@@ -117,7 +117,7 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
                 agent.best_val_loss = val_loss
                 patience = 0
                 if agent.elo_diff_from_random > 0:
-                    agent.save_model(save_drive=CFG.cloud_operations,dir_path=CFG.model_dir_path)
+                    agent.save_model()
             else:
                 patience += 1
                 if patience >= max_patience:

@@ -103,11 +103,9 @@ class LeelaZeroAgent(object):
     def get_model_name(self):
         return str(round(self.best_val_loss,5))+"-"+str(self.elo_diff_from_random)+"-"+str(self.filters)+"-"+str(self.res_blocks)+".pth"
 
-    def save_model(self,save_drive = True,dir_path = "/content/drive/MyDrive/projects/chessai"):
+    def save_model(self):
         model_name = self.get_model_name()
-        torch.save(self.value_model.state_dict(), model_name)
-        if save_drive:
-            shutil.copy(model_name,dir_path)
+        torch.save(self.value_model.state_dict(), os.path.join(CFG.model_dir_path,model_name))
 
     def get_deepcopy(self):
         new_agent = LeelaZeroAgent(self.n_simulations,self.board,self.is_white,self.batch_size,self.epochs,self.training,
