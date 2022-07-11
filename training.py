@@ -40,7 +40,7 @@ def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
         running_loss += sum_loss.item()
     return running_loss/j
 
-def validate_outcomes(agent,val_agents={},n_tries = 10,elo_save_treshold = 200):
+def validate_outcomes(agent,val_agents={},n_tries = 5,elo_save_treshold = 200):
     current_elo = 0
     for elo,val_agent in val_agents.items():
         print(f"Validating at {elo} elo :")
@@ -164,12 +164,14 @@ def train_master_games(agent,patience,epochs):
     prev_epochs = CFG.epochs
     CFG.patience = patience
     CFG.epochs = epochs
+    CFG.weight_value = 4
 
     train_dataset,val_dataset = get_master_datasets()
     train_loader,val_loader = get_data_loader(train_dataset,val_dataset,load_matches=True,batch_size=32)
     train_value_model(agent,train_loader,val_loader)
     CFG.epochs = prev_epochs
     CFG.patience = prev_patience
+    CFG.weight_value = 1
     return None
 
 
@@ -193,7 +195,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         CFG.random_flip_chance = 0.5
     val_agents = {0:val_agent}
     if CFG.start_master_train:
-        train_master_games(agent,5,50)
+        train_master_games(agent,0,1)
     for episode in range(n_episodes):
         if (episode+1) % n_accumulate == 0:
             try:

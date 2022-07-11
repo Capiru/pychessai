@@ -7,6 +7,7 @@ from match import match, get_board_as_tensor
 from move_choice import minimax_with_pruning_and_policyeval
 from search.search import MonteCarloSearchNode
 import shutil
+import os
 from config import CFG
 
 class LeelaZero(nn.Module):
