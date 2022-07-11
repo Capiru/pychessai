@@ -39,4 +39,4 @@ def register_model(model_save_path,file_extension = ".pth",cleanup = False):
 def append_log(log_path,log_string):
     with open(log_path,"a") as f:
         f.write(log_string)
-        f.write("\n")/
+        f.write("\n")
