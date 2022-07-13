@@ -113,7 +113,7 @@ def minimax_with_pruning_and_policyeval(board,depth,is_player,alpha=-np.inf,beta
     if depth==0 or board.is_game_over():
         #this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if value_agent is None:
-            return get_board_evaluation(board),None,positions
+            return get_rival_board_evaluation(board),None,positions
         else:
             eval,policy = value_agent.get_board_evaluation(board)
             return eval,None,positions

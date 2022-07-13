@@ -9,7 +9,7 @@ import math
 from move_choice import random_choice
 from cloudops import dir_size
 import os
-
+from game import *
 from policy import map_moves_to_policy
 
 def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
@@ -17,6 +17,15 @@ def fen_start_from_opening(openings_path = "./openings/df_openings.csv"):
     opening_len = len(df)
     random_idx = np.random.randint(0,opening_len-1)
     return str(df.iloc[random_idx].starting_fen)
+
+def early_resignation(board,eval_white,eval_black):
+    if abs(eval_white) > 500 or abs(eval_black) > 500:
+        if eval_white > 500:
+            return True,True 
+        else:
+            return True,False
+    else:
+        return False,None
 
 def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,start_from_random = False,random_start_depth=16,save_tensor = True,progress = None,is_player_one = True):
     if start_from_opening:
@@ -33,31 +42,51 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
     agent_two.is_white = False
     agent_one.positions = 0
     agent_two.positions = 0
-    
+    early_resign = False
+    early_resign_patience = 0
     while game.is_game_over() is False:
         move = agent_one.choose_move(game)
         game.push(move[0])
-        
+        if CFG.SHOW_GAME:
+            CFG.fig = show_board(game, agent_one.eval, agent_two.eval,CFG.fig)
         if game.is_game_over() is True:
             break
+        early_resign,outcome = early_resignation(game, agent_one.eval, agent_two.eval)
+        if early_resign:
+            early_resign_patience+=1
+        else:
+            early_resign_patience = 0
         move = agent_two.choose_move(game)
         game.push(move[0])
+        if CFG.SHOW_GAME:
+            CFG.fig = show_board(game, agent_one.eval, agent_two.eval,CFG.fig)
+        early_resign,outcome = early_resignation(game, agent_one.eval, agent_two.eval)
+        if early_resign:
+            early_resign_patience+=1
+        else:
+            early_resign_patience = 0
+        if early_resign_patience > CFG.EARLY_RESIGN_PATIENCE:
+            break
         if progress is not None:
             progress.set_description()
-    try:
-        agent_one.reset_game()
-        agent_two.reset_game()
-    except:
-        a = 1
-    if is_update_elo:
-        update_elo_agents(agent_one,agent_two,game.outcome().winner)
-    if save_tensor:
+    if not early_resign:
         try:
             winner = game.outcome().winner
             win_nxor = not (winner ^ is_player_one)
         except:
             win_nxor = None
             winner = None
+    else:
+        winner = outcome
+        win_nxor = not (winner ^ is_player_one)
+    try:
+        agent_one.reset_game()
+        agent_two.reset_game()
+    except:
+        a = 1
+    if is_update_elo:
+        update_elo_agents(agent_one,agent_two,winner)
+    if save_tensor:
         match_tensor = get_match_as_fen_tensor(game,win_nxor,is_player_one)
         return winner,match_tensor
     else:

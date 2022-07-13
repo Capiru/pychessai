@@ -8,6 +8,7 @@ from policy import map_moves_to_policy
 import copy
 import math
 from config import CFG
+import time
 
 class AlphaBetaPruning(object):
     def __init__(self,depth = 3,eval_fun = get_board_evaluation,policy_fun=get_sorted_move_list,pruning = False,transposition_table = False,time_based = False,time_limit = 1,capture_eval_correction = False):
@@ -167,6 +168,7 @@ class NegaMaxObject(object):
         self.time_based = time_based
         self.time_limit = time_limit
         self.start_time = -1
+        self.quiesce_time = -1
         self.max_quiescence_depth = 5
         self.positions = 0
         self.positions_analysed = {}
@@ -176,6 +178,7 @@ class NegaMaxObject(object):
             self.search_fun = self.search
 
     def quiesce(self,board,is_white,depth,alpha,beta):
+        
         stand_pat = self.eval_fun(board,is_white)
         if stand_pat >= beta:
             return beta
@@ -183,6 +186,8 @@ class NegaMaxObject(object):
             alpha = stand_pat
         capture_list = self.policy_fun(board,only_attacks = True)
         for move in capture_list:
+            if time.process_time() - self.quiesce_time >= 1:
+                break
             board.push(move)
             eval = self.quiesce(board,not is_white,depth+1,-beta,-alpha)
             eval = -eval
@@ -191,6 +196,7 @@ class NegaMaxObject(object):
                 return beta
             if eval > alpha:
                 alpha = eval
+            
         return alpha
 
     def search(self,board,depth,is_white = True,alpha = -np.inf,beta=np.inf):
@@ -200,6 +206,7 @@ class NegaMaxObject(object):
         except:
             self.positions += 1
         if depth == 0 or board.is_game_over():
+            self.quiesce_time = time.process_time()
             return self.quiesce(board,is_white,depth = 1,alpha = alpha,beta = beta),None
         best_move = None
         move_list = self.policy_fun(board)
@@ -277,7 +284,10 @@ class MonteCarloSearchNode:
         if not is_terminal_node:
             for i in range(len(self.legal_actions)):
                 self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
-        self.choose_move = self.choose_move_from_ucb_weights
+        if agent.training:
+            self.choose_move = self.choose_move_from_ucb_weights
+        else:
+            self.choose_move = self.choose_best_ucb
         
 
     def fill_untried_actions(self):
@@ -384,7 +394,7 @@ class MonteCarloSearchNode:
 
     def choose_best_ucb(self):
         score,move = self.find_best_child()
-        return move
+        return move,self.untried_actions_dic[move]
 
     def save_to_memory(self):
         policy_label,_ = map_moves_to_policy([self.best_child],self.board,flatten = True)

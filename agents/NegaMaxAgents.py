@@ -36,3 +36,5 @@ class NegaMaxAgent(object):
             CFG.val_last_policy_index += 1
             if CFG.val_last_policy_index%CFG.batch_size == 0:
                 CFG.val_last_policy_index = 0
+    def reset_game(self):
+        self.eval = 0

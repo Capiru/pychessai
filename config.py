@@ -4,6 +4,10 @@ import torch.nn as nn
 class CFG:
     DEBUG = False
     TEST = False
+    EARLY_RESIGN_PATIENCE = 10
+    SHOW_GAME = False
+    fig = None
+    ax = None
 
     board_size = 8 ## total length and height, total squares = 64
     n_players = 2
@@ -13,15 +17,17 @@ class CFG:
     n_planes = n_players * n_pieces + real_planes + attacking_planes
 
 
-    lr = 0.0005
-    every_x_epochs = 1000
-    mult_lr = 0.5
+    lr = 0.001
+    every_x_epochs = 1e9
+    mult_lr = 1
 
     weight_decay = 1e-4
     
     epochs = 20
-    patience = 10
+    sampling_ratio = 3
+    patience = 100
     batch_size = 2048
+    clip_norm = 0.5
 
     policy_output_size = 4672
 
@@ -42,11 +48,12 @@ class CFG:
     WIN_VALUE = 100000
     LOSS_VALUE = -100000
     DRAW_VALUE = -0.01
-    RANDOM_START = 0
+    early_resignation_threshold = 800
+    RANDOM_START = 4
     weight_policy = 1
     weight_value = 1
     random_flip_chance = 0.10
-    start_master_train = True
+    start_master_train = False
 
     cloud_operations = True
     model_dir_path = "G:/Meine Ablage/projects/chessai/models/"

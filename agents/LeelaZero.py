@@ -96,7 +96,7 @@ class LeelaZeroAgent(object):
         #     self.parent_node = None
         self.positions += self.n_simulations
         try:
-            self.eval = score.detach().cpu()
+            self.eval = score.detach().cpu().numpy()[0][0]
         except:
             self.eval = score
         return [move]
@@ -117,4 +117,5 @@ class LeelaZeroAgent(object):
         return new_agent
 
     def reset_game(self):
+        self.eval = 0
         self.parent_node = None

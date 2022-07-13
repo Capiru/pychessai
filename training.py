@@ -18,8 +18,11 @@ from torch.utils.data.dataloader import default_collate
 def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
     agent.value_model.eval()
     running_loss = 0.0
+    running_value_loss = 0.0
+    running_policy_loss = 0.0
     j = 1
     for i, (inputs, labels,policy_labels) in enumerate(val_loader, 0):
+        j += 1
         # get the inputs; data is a list of [inputs, labels]
         inputs = inputs.to(CFG.DEVICE)
         labels = labels.to(CFG.DEVICE)
@@ -33,12 +36,12 @@ def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
         value_loss = criterion(value, labels)
         policy_loss = bce_criterion(policy,policy_labels)
         sum_loss = value_loss + policy_loss
-        sum_loss.backward()
-        optimizer.step()
 
         # print statistics
         running_loss += sum_loss.item()
-    return running_loss/j
+        running_policy_loss += policy_loss.item()
+        running_value_loss += value_loss.item()
+    return running_value_loss/j,running_policy_loss/j
 
 def validate_outcomes(agent,val_agents={},n_tries = 5,elo_save_treshold = 200):
     current_elo = 0
@@ -66,16 +69,17 @@ def my_collate(batch):
     policy_target = torch.cat([item[2] for item in batch],dim = 0)
     return [data,value_target,policy_target]
 
-def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
+def train_value_model(agent,train_loader,val_loader=None,epochs = 1,progress_bar = True):
     if progress_bar:
-        progress = tqdm(range(CFG.epochs), desc="")
+        progress = tqdm(range(epochs), desc="")
     else:
-        progress = range(range(CFG.epochs))
+        progress = range(range(epochs))
     criterion = CFG.criterion
     bce_criterion = CFG.bce_criterion
     optimizer = torch.optim.Adam(agent.value_model.parameters(),lr = CFG.lr,weight_decay = CFG.weight_decay)
     len_tl = len(train_loader)
-    val_loss = 0
+    val_v_loss = 0
+    val_p_loss = 0
     patience = 0
     max_patience = CFG.patience
     for epoch in progress:  # loop over the dataset multiple times
@@ -101,6 +105,7 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
             value_loss = CFG.weight_value * criterion(value, labels)
             sum_loss = value_loss + policy_loss
             sum_loss.backward()
+            torch.nn.utils.clip_grad_norm_(agent.value_model.parameters(), CFG.clip_norm)
             optimizer.step()
             
             # print statistics
@@ -108,11 +113,11 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
             running_policy_loss += policy_loss.detach().item()
             running_loss += sum_loss.detach().item()
             if progress_bar:
-                progress.set_description(f"[{epoch+1}/{CFG.epochs}/{agent.trained_epochs}] [{i+1}/{len_tl}] value_loss: {running_value_loss/(i+1)} policy_loss: {running_policy_loss/(i+1)} sum_loss: {running_loss/(i+1)}  val_loss: {val_loss}")
+                progress.set_description(f"[{epoch+1}/{epochs}/{agent.trained_epochs}] [{i+1}/{len_tl}] value_loss: {running_value_loss/(i+1)} policy_loss: {running_policy_loss/(i+1)} val_value: {val_v_loss}  val_policy: {val_p_loss}")
+        torch.cuda.empty_cache()
         if val_loader is not None:
-            val_loss = val_value_model(agent,val_loader,optimizer,criterion,bce_criterion)
-            if (epoch+1) % CFG.every_x_epochs == 0:
-                optimizer.param_groups[0]['lr'] *= CFG.mult_lr
+            val_v_loss,val_p_loss = val_value_model(agent,val_loader,optimizer,criterion,bce_criterion)
+            val_loss = val_v_loss + val_p_loss
             if val_loss < agent.best_val_loss:
                 agent.best_val_loss = val_loss
                 patience = 0
@@ -122,6 +127,11 @@ def train_value_model(agent,train_loader,val_loader=None,progress_bar = True):
                 patience += 1
                 if patience >= max_patience:
                     break
+            torch.cuda.empty_cache()
+            if progress_bar:
+                progress.set_description(f"[{epoch+1}/{epochs}/{agent.trained_epochs}] [{i+1}/{len_tl}] value_loss: {running_value_loss/(i+1)} policy_loss: {running_policy_loss/(i+1)} val_value: {val_v_loss}  val_policy: {val_p_loss}")
+        if (epoch+1) % CFG.every_x_epochs == 0:
+            optimizer.param_groups[0]['lr'] *= CFG.mult_lr
     return None
 
 def get_batch_datasets():
@@ -161,17 +171,12 @@ def get_master_datasets():
 
 def train_master_games(agent,patience,epochs):
     prev_patience = CFG.patience
-    prev_epochs = CFG.epochs
     CFG.patience = patience
-    CFG.epochs = epochs
-    CFG.weight_value = 4
 
     train_dataset,val_dataset = get_master_datasets()
-    train_loader,val_loader = get_data_loader(train_dataset,val_dataset,load_matches=True,batch_size=32)
-    train_value_model(agent,train_loader,val_loader)
-    CFG.epochs = prev_epochs
+    train_loader,val_loader = get_data_loader(train_dataset,val_dataset,load_matches=True,batch_size=8)
+    train_value_model(agent,train_loader,val_loader,epochs = CFG.epochs)
     CFG.patience = prev_patience
-    CFG.weight_value = 1
     return None
 
 
@@ -181,7 +186,8 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         register_model(CFG.model_dir_path,file_extension = ".pth",cleanup = False)
         f = [x for x in os.listdir(CFG.model_dir_path) if x.endswith("-best_model.pth")]
         elo_diff = f[0].split("-")[0]
-        state_dict = torch.load(os.path.join(CFG.model_dir_path,f[0]))
+        state_dict = torch.load(os.path.join(CFG.model_dir_path,f[0]),map_location = "cpu")
+        agent.value_model.to(CFG.DEVICE)
         agent.value_model.load_state_dict(state_dict)
         val_agent = agent.get_deepcopy()
         val_agent.elo_diff_from_random = int(elo_diff)
@@ -204,14 +210,6 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 pass
             if update_base_agent:
                 base_agent = agent.get_deepcopy()
-            if CFG.save_batch_to_device:
-                try:
-                    file_list = os.listdir(CFG.dataset_dir_path)
-                    for item in file_list:
-                        if item.endswith(".pt"):
-                            os.remove(os.path.join(CFG.dataset_dir_path, item))
-                except:
-                    pass
         agent.value_model.train()
         CFG.batch_full = False
         agent.training = True
@@ -233,7 +231,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         else:
             train_dataset,val_dataset = get_batch_datasets()
         train_loader,val_loader = get_data_loader(train_dataset,val_dataset=val_dataset,batch_size = 1)
-        train_value_model(agent,train_loader,val_loader)
+        train_value_model(agent,train_loader,val_loader,epochs = CFG.sampling_ratio)
         agent.value_model.eval()
         val_agents = validate_outcomes(agent,val_agents=val_agents)
         if CFG.cloud_operations:
