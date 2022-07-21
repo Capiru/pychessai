@@ -4,7 +4,7 @@ import chess as ch
 import numpy as np
 from match import *
 from move_choice import *
-from policy import is_move_legal
+from policy import is_move_legal,map_policy_to_move
 
 class ChessEnv(gym.Env):
     def __init__(self,env_config):
