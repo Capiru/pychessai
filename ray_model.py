@@ -14,8 +14,8 @@ class CustomTorchModel(TorchModelV2,nn.Module):
         nn.Module.__init__(self)
 
         input_channel_size=19
-        filters = 48
-        res_blocks = 6
+        filters = 24
+        res_blocks = 1
         se_channels = 0
         policy_conv_size = 73
         policy_output_size = 4672
