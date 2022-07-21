@@ -38,6 +38,11 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
                 if len(legal_moves) > 0:
                     move = random_choice(legal_moves,None,1)
                     game.push(move[0])
+    try:
+        agent_one.reset_game()
+        agent_two.reset_game()
+    except:
+        a = 1
     agent_one.is_white = True
     agent_two.is_white = False
     agent_one.positions = 0
@@ -79,11 +84,7 @@ def match(agent_one,agent_two,is_update_elo = True,start_from_opening = False,st
     else:
         winner = outcome
         win_nxor = not (winner ^ is_player_one)
-    try:
-        agent_one.reset_game()
-        agent_two.reset_game()
-    except:
-        a = 1
+    
     if is_update_elo:
         update_elo_agents(agent_one,agent_two,winner)
     if save_tensor:

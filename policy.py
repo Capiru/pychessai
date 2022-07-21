@@ -2,6 +2,30 @@ import torch
 import chess as ch
 from config import CFG
 
+def map_policy_to_move(action,board):
+    ### takes an int and converts it into a legal move
+    vector = torch.zeros((73,8,8))
+    return_move_list = []
+    original_action = get_original_coordinates(action)
+    legal_moves = board.legal_moves
+    for move in legal_moves:
+        initial_square = move.from_square
+        piece_type = board.piece_at(initial_square)
+        to_square = move.to_square
+        if str(piece_type).lower() == "n" or piece_type == ch.KNIGHT:
+            plane_no = 56
+            plane_no += get_plane_knight(initial_square,to_square)
+        elif move.promotion is not None and not move.promotion == ch.QUEEN:
+            plane_no = 64
+            plane_no += get_plane_underpromotion(initial_square,to_square,move)
+        else:
+            plane_no = 0
+            plane_no += get_plane_queen_moves(initial_square,to_square)
+        vector[plane_no,initial_square%8,((initial_square)//8)%8] = 1
+        if plane_no == original_action[0] and initial_square%8 == original_action[1] and ((initial_square)//8)%8 == original_action[2]:
+            return move
+    return None
+
 def map_moves_to_policy(legal_moves,board,flatten = False,dic = None):
     ### Returns a vector same sized as policy with all legal moves, with 1 on possible legal moves
     vector = torch.zeros((73,8,8))
@@ -38,6 +62,13 @@ def map_moves_to_policy(legal_moves,board,flatten = False,dic = None):
         return torch.flatten(vector),return_move_list
     else:
         return vector
+
+def is_move_legal(move,board):
+    actions,_ = map_moves_to_policy(board.legal_moves,board,flatten = True)
+    if actions[move] == 1:
+        return True
+    else:
+        return False
 
 def get_original_coordinates(pos):
     ### Takes a position from a 4672 vector and turns it back into (x,y,z) in a (73x8x8) tensor

@@ -4,3 +4,6 @@ numpy
 matplotlib
 pandas
 tqdm
+'ray[default]'
+'ray[rllib]'
+cairosvg

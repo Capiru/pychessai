@@ -277,7 +277,11 @@ class MonteCarloSearchNode:
             for i in range(len(self.legal_actions)):
                 self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
                 self.untried_actions_dic[self.legal_actions[i]] = self.policy_priors[i]
-        self.untried_actions = copy.deepcopy(self.legal_actions)
+        sorted_actions_list = sorted(self.untried_actions_dic.items(), key=lambda x:x[1])
+        sorted_actions_dic = dict(sorted_actions_list)
+        self.untried_actions = []
+        for k,v in sorted_actions_dic.items():
+            self.untried_actions.append(k)
         self.last_child_move = None
         self.best_child_score = -np.inf
         self.best_child = None
@@ -285,7 +289,7 @@ class MonteCarloSearchNode:
             for i in range(len(self.legal_actions)):
                 self.current_ucb_scores[self.legal_actions[i]] = self.policy_priors[i]
         if agent.training:
-            self.choose_move = self.choose_move_from_ucb_weights
+            self.choose_move = self.choose_best_ucb
         else:
             self.choose_move = self.choose_best_ucb
         

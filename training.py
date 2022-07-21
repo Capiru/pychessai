@@ -46,9 +46,9 @@ def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
 def validate_outcomes(agent,val_agents={},n_tries = 5,elo_save_treshold = 200):
     current_elo = 0
     for elo,val_agent in val_agents.items():
-        print(f"Validating at {elo} elo :")
         current_elo = elo
-        val_outcomes = experiments(agent,val_agent,n_tries,start_from_random=False,save_match_tensor=False)
+        print(f"Validating at {elo} elo :")
+        val_outcomes = experiments(agent,val_agent,n_tries,start_from_random=True,save_match_tensor=False)
         val_elo_diff = get_elo_diff_from_outcomes(val_outcomes)
         if val_elo_diff < elo_save_treshold:
             return val_agents
@@ -184,22 +184,26 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
     update_base_agent = False
     if CFG.load_best_model:
         register_model(CFG.model_dir_path,file_extension = ".pth",cleanup = False)
-        f = [x for x in os.listdir(CFG.model_dir_path) if x.endswith("-best_model.pth")]
-        elo_diff = f[0].split("-")[0]
-        state_dict = torch.load(os.path.join(CFG.model_dir_path,f[0]),map_location = "cpu")
+        f ,elo_diff = get_best_model(CFG.model_dir_path,file_extension = ".pth")
+        # f = os.path.join(CFG.model_dir_path,"1041.0-194-10-best_model.pth")
+        # elo_diff = 1041
+        print("Loaded model with elo_diff: ",elo_diff)
+        state_dict = torch.load(f,map_location = "cpu")
         agent.value_model.to(CFG.DEVICE)
         agent.value_model.load_state_dict(state_dict)
         val_agent = agent.get_deepcopy()
         val_agent.elo_diff_from_random = int(elo_diff)
         agent.elo_diff_from_random = int(elo_diff)
+        val_elo = int(elo_diff)
     elif val_agent is None:
+        val_elo = 0
         val_agent = RandomAgent()
     if base_agent is None:
         update_base_agent = True
         base_agent = agent.get_deepcopy()
     else:
         CFG.random_flip_chance = 0.5
-    val_agents = {0:val_agent}
+    val_agents = {val_elo:val_agent}
     if CFG.start_master_train:
         train_master_games(agent,0,1)
     for episode in range(n_episodes):
@@ -208,6 +212,7 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
                 output.clear()
             except:
                 pass
+            delete_dataset_overflow(0,CFG.dataset_dir_path,file_ending=".pt")
             if update_base_agent:
                 base_agent = agent.get_deepcopy()
         agent.value_model.train()
@@ -236,9 +241,5 @@ def self_play(agent,base_agent=None,val_agent=None,play_batch_size = 4,n_episode
         val_agents = validate_outcomes(agent,val_agents=val_agents)
         if CFG.cloud_operations:
             get_agent_pool_df(model_save_path = CFG.model_dir_path,file_extension = ".pth")
-            if dir_size(CFG.dataset_dir_path) > 25:
-                file_list = os.listdir(CFG.dataset_dir_path)
-                for item in file_list:
-                    if item.endswith(".pt"):
-                        os.remove(os.path.join(CFG.dataset_dir_path, item))
+            delete_dataset_overflow(25,CFG.dataset_dir_path,file_ending=".pt")
     return None

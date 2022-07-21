@@ -4,6 +4,7 @@ import torch.nn as nn
 class CFG:
     DEBUG = False
     TEST = False
+    EARLY_RESIGN = False
     EARLY_RESIGN_PATIENCE = 10
     SHOW_GAME = False
     fig = None
@@ -24,10 +25,11 @@ class CFG:
     weight_decay = 1e-4
     
     epochs = 20
-    sampling_ratio = 3
+    sampling_ratio = 2
     patience = 100
     batch_size = 2048
     clip_norm = 0.5
+    epsilon = 0.05
 
     policy_output_size = 4672
 
@@ -62,13 +64,14 @@ class CFG:
     pgn_path = "./datasets"
     max_dataset_size = 25 ### in Gb
     model_dir_size_limit = 10 ### in Gb
-    load_best_model = True
-
+    load_best_model = False
+    
     GPU = torch.cuda.is_available()
     if GPU:
         DEVICE = torch.device("cuda:0")
     else:
         DEVICE = torch.device("cpu")
+    print("Device set on : ",DEVICE)
     criterion = nn.MSELoss()
     bce_criterion = nn.BCEWithLogitsLoss()
     

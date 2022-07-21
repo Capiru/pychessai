@@ -102,7 +102,7 @@ class LeelaZeroAgent(object):
         return [move]
     
     def get_model_name(self):
-        return str(round(self.best_val_loss,5))+"-"+str(self.elo_diff_from_random)+"-"+str(self.filters)+"-"+str(self.res_blocks)+".pth"
+        return str(round(self.best_val_loss,5))+"-"+str(int(self.elo_diff_from_random))+"-"+str(self.filters)+"-"+str(self.res_blocks)+".pth"
 
     def save_model(self):
         model_name = self.get_model_name()
