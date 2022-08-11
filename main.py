@@ -7,7 +7,6 @@ from match import experiments
 import chess as ch
 from training import *
 from test import *
-import ray_model
  
 import torch
 

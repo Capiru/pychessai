@@ -250,7 +250,7 @@ class NegaMaxObject(object):
             return min_score,best_move,all_pos,all_analysed_pos
 
 class MonteCarloSearchNode:
-    def __init__(self,agent,prior,player_white,board,state = None,node_value = None,parent = None,parent_move = None,policy_priors=None,legal_actions = None,is_terminal_node = False):
+    def __init__(self,agent,prior,player_white,board,state = None,node_value = 0,parent = None,parent_move = None,policy_priors=None,legal_actions = None,is_terminal_node = False):
         self.agent = agent
         self.prior = prior
         self.player_white = player_white
@@ -293,6 +293,12 @@ class MonteCarloSearchNode:
         else:
             self.choose_move = self.choose_best_ucb
         
+    def return_policy_vector(self):
+        policy_vector = np.zeros((73*8*8,1))
+        for k,v in self.current_ucb_scores.items():
+            policy_vector[legal_action(k)] = 1
+        return policy_vector
+
 
     def fill_untried_actions(self):
         self.untried_actions = copy.deepcopy(self.legal_actions)
@@ -312,16 +318,18 @@ class MonteCarloSearchNode:
             self.is_terminal_node = True
             if self.board.is_checkmate():
                 if not self.board.outcome().winner ^ self.player_white:
-                    return CFG.WIN_VALUE,None
+                    return None,CFG.WIN_VALUE
                 else:
-                    return CFG.LOSS_VALUE,None
+                    return None,CFG.LOSS_VALUE
             else:
-                return CFG.DRAW_VALUE,None
+                return None,CFG.DRAW_VALUE
         else:
             self.is_terminal_node = False
             if CFG.TEST:
                 return rival_eval(self.board,self.player_white),map_moves_to_policy(list(self.board.legal_moves),self.board,flatten = True)[0].to(CFG.DEVICE)
             return self.agent.value_model.get_board_evaluation(self.board,self.player_white)
+
+
     
     def backpropagate(self,result):
         self.visit_count += 1
@@ -361,7 +369,7 @@ class MonteCarloSearchNode:
         legal_moves = list(self.board.legal_moves)
         reduced_actions = torch.zeros((len(legal_moves))).to(CFG.DEVICE)
         #state = get_board_as_tensor(self.board,self.player_white)
-        score,policy = self.get_board_reward()
+        policy,score = self.get_board_reward()
         if not self.is_terminal_node:
             legal_moves_mask,move_list = map_moves_to_policy(legal_moves,self.board,flatten = True)
             action_space = torch.mul(torch.flatten(policy),legal_moves_mask.to(CFG.DEVICE))
@@ -444,10 +452,10 @@ class MonteCarloSearchNode:
             children_node.backpropagate(children_node.node_value)
         ### Add the best_child to the memory batch
         best_child_score, best_child = self.find_best_child()
-        if self.agent.training and CFG.save_batch_to_device:
-            self.save_to_memory()
-        if CFG.TEST:
-            print(self.current_ucb_scores)
+        # if self.agent.training and CFG.save_batch_to_device:
+        #     self.save_to_memory()
+        # if CFG.TEST:
+        #     print(self.current_ucb_scores)
         return best_child_score, best_child
         # except Exception as e:
         #     print(current_node.legal_actions)

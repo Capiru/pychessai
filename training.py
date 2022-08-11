@@ -32,7 +32,7 @@ def val_value_model(agent,val_loader,optimizer,criterion,bce_criterion):
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        value,policy = agent.value_model(inputs)
+        policy,value = agent.value_model(inputs)
         value_loss = criterion(value, labels)
         policy_loss = bce_criterion(policy,policy_labels)
         sum_loss = value_loss + policy_loss
@@ -99,7 +99,7 @@ def train_value_model(agent,train_loader,val_loader=None,epochs = 1,progress_bar
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            value,policy = agent.value_model(inputs)
+            policy,value = agent.value_model(inputs)
             
             policy_loss = CFG.weight_policy * bce_criterion(policy,policy_labels)
             value_loss = CFG.weight_value * criterion(value, labels)

@@ -55,7 +55,7 @@ class LeelaZero(nn.Module):
         policy = torch.flatten(policy, 1)
         policy = self.policy_fc(policy)
         
-        return value,policy
+        return policy,value
     
     def get_board_evaluation(self,board,is_player_white):
         input_tensor = get_board_as_tensor(board,is_player_white)
