@@ -327,7 +327,10 @@ class MonteCarloSearchNode:
             self.is_terminal_node = False
             if CFG.TEST:
                 return rival_eval(self.board,self.player_white),map_moves_to_policy(list(self.board.legal_moves),self.board,flatten = True)[0].to(CFG.DEVICE)
-            return self.agent.value_model.get_board_evaluation(self.board,self.player_white)
+            try:
+                return self.agent.value_model.get_board_evaluation(self.board,self.player_white)
+            except:
+                return self.agent.get_board_evaluation(self.board)
 
 
     

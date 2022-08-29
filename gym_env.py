@@ -178,7 +178,10 @@ class PettingChessEnv(AECEnv):
         current_agent = self.agent_selection
         current_index = self.agents.index(current_agent)
         ### This current index mirrors the move
-        chosen_move = chess_utils.action_to_move(self.board, action, current_index)
+        try:
+            chosen_move = chess_utils.action_to_move(self.board, action, current_index)
+        except:
+            chosen_move = chess_utils.action_to_move(self.board, action["player_"+str(current_index)], current_index)
         try:
             assert chosen_move in list(self.board.legal_moves)
         except AssertionError:
@@ -230,6 +233,12 @@ class PettingChessEnv(AECEnv):
 
     def set_state(self,state):
         self.board = state
+        return self.board
+
+    def random_start(self,random_moves):
+        self.board = ch.Board()
+        for i in range(random_moves):
+            self.board.push(np.random.choice(list(self.board.legal_moves)))
         return self.board
 
 class PettingZooEnv_v2(MultiAgentEnv):
@@ -293,14 +302,14 @@ class PettingZooEnv_v2(MultiAgentEnv):
         }
     """
 
-    def __init__(self, env=PettingChessEnv()):
+    def __init__(self, config = {"random_start" : 4}, env=PettingChessEnv()):
         super().__init__()
         self.env = env
         env.reset()
         # TODO (avnishn): Remove this after making petting zoo env compatible with
         #  check_env.
         self._skip_env_checking = True
-
+        self.config = config
         # Get first observation space, assuming all agents have equal space
         self.observation_space = self.env.observation_space(self.env.agents[0])
 
@@ -326,8 +335,13 @@ class PettingZooEnv_v2(MultiAgentEnv):
         )
         self._agent_ids = set(self.env.agents)
 
+    def observe(self):
+        return self.env.observe(self.env.agent_selection)
+
     def reset(self):
         self.env.reset()
+        if self.config["random_start"] > 0:
+            self.env.random_start(self.config["random_start"])
         return {self.env.agent_selection: self.env.observe(self.env.agent_selection)}
 
     def step(self, action):

@@ -17,8 +17,15 @@ from functools import wraps
 import chess as ch
 
 from ray_utils.leelazero_trainer import LeelaZeroTrainer
+from ray.rllib.policy.policy import PolicySpec
+from ray.rllib.examples.policy.random_policy import RandomPolicy
+from ray_utils.randomlegalpolicy import RandomLegalPolicy
 
-
+def policy_mapping_fn(agent_id, episode, worker, **kwargs):
+    # agent_id = [0|1] -> policy depends on episode ID
+    # This way, we make sure that both policies sometimes play agent0
+    # (start player) and sometimes agent1 (player to move 2nd).
+    return "main" if episode.episode_id % 2 == agent_id else "random"
 
 try:
     def env_creator(env_config):
@@ -48,18 +55,45 @@ try:
 
     tune.run(
         LeelaZeroTrainer,
-        stop={"training_iteration": 5},
+        stop={"training_iteration": 500},
         max_failures=0,
         config={
             "env": "myEnv",
             "num_workers": 1,
-            "num_gpus": 0,
+            "num_gpus": 1,
             "mcts_config": {
-                "num_simulations": 2,
+                "num_simulations": 300,
                 "argmax_tree_policy": True,
                 "add_dirichlet_noise": False,
-                "epsilon": 0.3
+                "epsilon": 0.05
             },
+            "multiagent": {
+            # Initial policy map: Random and PPO. This will be expanded
+            # to more policy snapshots taken from "main" against which "main"
+            # will then play (instead of "random"). This is done in the
+            # custom callback defined above (`SelfPlayCallback`).
+            "policies": {
+                # Our main policy, we'd like to optimize.
+                "main": PolicySpec(config = {"mcts_config": {
+                "num_simulations": 30,
+                "argmax_tree_policy": False,
+                "add_dirichlet_noise": True,
+                "epsilon": 0.01}}),
+                # An initial random opponent to play against.
+                "random": PolicySpec(config = {"mcts_config": {
+                "num_simulations": 2,
+                "argmax_tree_policy": False,
+                "add_dirichlet_noise": False,
+                "epsilon": 1}}),#policy_class=RandomLegalPolicy),
+            },
+            # Assign agent 0 and 1 randomly to the "main" policy or
+            # to the opponent ("random" at first). Make sure (via episode_id)
+            # that "main" always plays against "random" (and not against
+            # another "main").
+            "policy_mapping_fn": policy_mapping_fn,
+            # Always just train the "main" policy.
+            "policies_to_train": ["main"],
+        },
             "ranked_rewards": {
                 "enable": False,
             },

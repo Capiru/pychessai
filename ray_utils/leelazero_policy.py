@@ -8,11 +8,11 @@ from ray.rllib.utils.framework import try_import_torch
 from ray.rllib.utils.metrics.learner_info import LEARNER_STATS_KEY
 
 from search.search import MonteCarloSearchNode
+from pettingzoo.classic.chess import chess_utils
 
 torch, _ = try_import_torch()
 
 import gc
-
 
 class LeelaZeroPolicy(TorchPolicy):
     def __init__(
@@ -54,7 +54,6 @@ class LeelaZeroPolicy(TorchPolicy):
         episodes=None,
         **kwargs
     ):
-
         input_dict = {"obs": obs_batch}
         if prev_action_batch is not None:
             input_dict["prev_actions"] = prev_action_batch
@@ -88,17 +87,19 @@ class LeelaZeroPolicy(TorchPolicy):
                         parent=RootParentNode(env=self.env),
                         mcts=self.mcts,
                     )
-                    #self.parent_node = MonteCarloSearchNode(self.model,None,self.env.env.board.turn,self.env.env.board)
-                    #score,move = self.parent_node.search(n_simulations = self.n_simulations)
+                    # self.parent_node = MonteCarloSearchNode(self.model,None,self.env.env.board.turn,self.env.env.board)
+                    # score,move = self.parent_node.search(n_simulations = self.n_simulations)
+                    # print(score,move)
                 else:
                     # otherwise get last root node from previous time step
-                    tree_node = episode.user_data["tree_node"]
+                    #tree_node = episode.user_data["tree_node"]
+                    obs, rew, done, info = self.env.env.last()
                     tree_node = Node(
-                        state=tree_node.state,
-                        obs=tree_node.obs,
-                        reward=tree_node.reward,
-                        done=tree_node.done,
-                        action=tree_node.action,
+                        state=self.env.get_state(),
+                        obs=obs,
+                        reward=rew,
+                        done=done,
+                        action=None,
                         parent=RootParentNode(env=self.env),
                         mcts=self.mcts,
                     )
@@ -110,6 +111,7 @@ class LeelaZeroPolicy(TorchPolicy):
                 gc.collect()
                 # record action
                 actions.append(action)
+                print(f"{chess_utils.actions_to_moves[action]} taken")
                 # store new node
                 episode.user_data["tree_node"] = tree_node
 

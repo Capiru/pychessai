@@ -18,9 +18,9 @@ class Node:
         self.children = {}
 
         self.action_space_size = self.env.action_space.n
-        self.child_total_value = np.zeros(
+        self.child_total_value = np.ones(
             [self.action_space_size], dtype=np.float32
-        )  # Q
+        ) * 1e4  # Q
         self.child_priors = np.zeros([self.action_space_size], dtype=np.float32)  # P
         self.child_number_visits = np.zeros(
             [self.action_space_size], dtype=np.float32
@@ -84,8 +84,12 @@ class Node:
         """
         child_score = self.child_Q() + self.mcts.c_puct * self.child_U()
         masked_child_score = child_score
-        masked_child_score[~self.valid_actions] = -np.inf
-        return np.argmax(masked_child_score)
+        masked_child_score[~self.valid_actions] = -1e12
+        if self.mcts.exploit_child_value:
+            return np.argmax(masked_child_score)
+        else:
+            masked_child_score += 1e12
+            return np.random.choice(np.arange(len(masked_child_score)),p = masked_child_score/np.sum(masked_child_score))
 
     def select(self):
         current_node = self
@@ -96,6 +100,8 @@ class Node:
 
     def expand(self, child_priors):
         self.is_expanded = True
+        self.total_value = 0
+        self.parent.child_total_value[self.action] = 0
         self.child_priors = child_priors
 
     def get_child(self, action):
@@ -116,10 +122,14 @@ class Node:
 
     def backup(self, value):
         current = self
+        
         while current.parent is not None:
+            if self.mcts.turn_based_flip:
+                value = -value
             current.number_visits += 1
             current.total_value += value
             current = current.parent
+            
 
 
 class RootParentNode:
@@ -141,12 +151,14 @@ class MCTS:
         self.add_dirichlet_noise = mcts_param["add_dirichlet_noise"]
         self.c_puct = mcts_param["puct_coefficient"]
         self.epsilon = mcts_param["epsilon"]
+        self.turn_based_flip = mcts_param["turn_based_flip"]
+        self.exploit_child_value = mcts_param["argmax_child_value"]
 
     def compute_action(self, node):
         for _ in range(self.num_sims):
             leaf = node.select()
             if leaf.done:
-                value = leaf.reward
+                value = leaf.reward * 10
             else:
                 child_priors, value = self.model.compute_priors_and_value(leaf.obs)
                 if self.add_dirichlet_noise:

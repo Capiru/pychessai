@@ -88,6 +88,8 @@ DEFAULT_CONFIG = with_common_config({
         "argmax_tree_policy": False,
         "add_dirichlet_noise": True,
         "epsilon": 0.05,
+        "turn_based_flip":True,
+        "argmax_child_value":True,
     },
 
     # === Ranked Rewards ===

@@ -22,9 +22,12 @@ class LeelaZero(TorchModelV2,nn.Module):
     def __init__(self,obs_space: gym.spaces.Space,action_space: gym.spaces.Space,num_outputs: int,model_config: ModelConfigDict,name: str):
         TorchModelV2.__init__(self, obs_space,action_space,num_outputs,model_config,name)
         nn.Module.__init__(self)
-        self.preprocessor = get_preprocessor(obs_space.original_space)(
-            obs_space.original_space
-        )
+        try:
+            self.preprocessor = get_preprocessor(obs_space.original_space)(
+                obs_space.original_space
+            )
+        except:
+            self.preprocessor = get_preprocessor(obs_space)(obs_space)
 
         self.action_masking = False
         self.alpha_zero_obs = True
@@ -132,6 +135,9 @@ class LeelaZero(TorchModelV2,nn.Module):
         action_mask = torch.clamp(torch.log(action_mask), -1e10, 3.4e38)
         return masked_policy+action_mask
 
+    def get_board_evaluation(board):
+        return None
+
     def compute_priors_and_value(self, obs):
         new_obs = torch.from_numpy(obs["observation"].astype(np.float32).reshape([1,8,8,self.input_channel_size]))
         new_action_mask = torch.from_numpy(obs["action_mask"].astype(np.float32).reshape([1,self.num_outputs]))
@@ -142,6 +148,7 @@ class LeelaZero(TorchModelV2,nn.Module):
             value = self.value_function()
             logits, value = torch.squeeze(logits), torch.squeeze(value)
             priors = nn.Softmax(dim=-1)(logits)
+            value = nn.Tanh()(value)
             
             priors = priors.cpu().numpy()
             value = value.cpu().numpy()
