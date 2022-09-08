@@ -1,6 +1,7 @@
 import logging
 from typing import Type
 
+from ray.rllib.algorithms.algorithm import Algorithm
 from ray.rllib.agents import with_common_config
 from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.agents.trainer import Trainer
@@ -182,7 +183,7 @@ class LeelaZeroPolicyWrapperClass(LeelaZeroPolicy):
         )
 
 
-class LeelaZeroTrainer(Trainer):
+class LeelaZeroTrainer(Algorithm):
     @classmethod
     @override(Trainer)
     def get_default_config(cls) -> TrainerConfigDict:

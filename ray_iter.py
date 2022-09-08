@@ -26,32 +26,18 @@ def policy_mapping_fn(agent_id, episode, worker, **kwargs):
     # (start player) and sometimes agent1 (player to move 2nd).
     return "main" if episode.episode_id % 2 == agent_id else "random"
 
+def env_creator(env_config):
+    return PettingChessEnvFunc()
+env = PettingZooEnv_v2()
 try:
-    def env_creator(env_config):
-        return PettingChessEnvFunc()
-    env = PettingZooEnv_v2()
-    try:
-        env.get_state()
-    except:
-        raise BaseException()
-    register_env('myEnv', lambda config: PettingZooEnv_v2())
-    ModelCatalog.register_custom_model("my_torch_model", LeelaZero)
-    ray.shutdown()
-    ray.init(ignore_reinit_error=True,object_store_memory=3*10**9)
-
-    import shutil
-
-    CHECKPOINT_ROOT = "tmp/ppo/taxi"
-    #shutil.rmtree(CHECKPOINT_ROOT, ignore_errors=True, onerror=None)
-
-    ray_results = "/ray_results/"
-    #shutil.rmtree(ray_results, ignore_errors=True, onerror=None)
-    #config = (az.AlphaZeroConfig().environment(env="myEnv").training(model={"custom_model": "my_torch_model"}))
-
-    #agent.restore(CHECKPOINT_ROOT+"\checkpoint_000163\checkpoint-163")
-    N_ITER = 2000
-    s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
-    mcts_config = {"mcts_config": {
+    env.get_state()
+except:
+    raise BaseException()
+register_env('myEnv', lambda config: PettingZooEnv_v2())
+ModelCatalog.register_custom_model("my_torch_model", LeelaZero)
+ray.shutdown()
+ray.init(ignore_reinit_error=True,object_store_memory=3*10**9)
+mcts_config = {"mcts_config": {
                 "num_simulations": 100,
                 "argmax_tree_policy": False,
                 "add_dirichlet_noise": False,
@@ -59,14 +45,7 @@ try:
                 "puct_coefficient":np.sqrt(2),
                 "epsilon": 0.00,
                 "turn_based_flip":True}}
-
-    #LeelaZeroTrainer.train()
-
-    tune.run(
-        LeelaZeroTrainer,
-        stop={"training_iteration": 500},
-        max_failures=0,
-        config={
+config={
             "env": "myEnv",
             "num_workers": 1,
             "num_gpus": 1,
@@ -96,9 +75,22 @@ try:
             "model": {
                 "custom_model": "my_torch_model",
             },
-        },
-    )
-except Exception as e:
-    print("Error")
-    print(e)
-    ray.shutdown()
+        }
+LeelaTrainer = LeelaZeroTrainer(config = config)
+print(config)
+
+
+import shutil
+
+CHECKPOINT_ROOT = "tmp/ppo/taxi"
+#shutil.rmtree(CHECKPOINT_ROOT, ignore_errors=True, onerror=None)
+
+ray_results = "/ray_results/"
+#shutil.rmtree(ray_results, ignore_errors=True, onerror=None)
+#config = (az.AlphaZeroConfig().environment(env="myEnv").training(model={"custom_model": "my_torch_model"}))
+
+#agent.restore(CHECKPOINT_ROOT+"\checkpoint_000163\checkpoint-163")
+N_ITER = 2000
+s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
+
+LeelaTrainer.train()

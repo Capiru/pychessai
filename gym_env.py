@@ -186,11 +186,15 @@ class PettingChessEnv(AECEnv):
             assert chosen_move in list(self.board.legal_moves)
         except AssertionError:
             print(f"{current_agent} {current_index} chose {chosen_move} {action}")
+            print("legal moves:",self.board.legal_moves)
+            print(self.board)
+            self.game_over = True
             self.set_game_result(not self.board.turn)
             self._accumulate_rewards()
             self.agent_selection = (
             self._agent_selector.next()
         )  # Give turn to the next agent
+            self.dones["player_0"],self.dones["player_1"] = True,True
             return None
 
         self.board.push(chosen_move)
@@ -302,7 +306,7 @@ class PettingZooEnv_v2(MultiAgentEnv):
         }
     """
 
-    def __init__(self, config = {"random_start" : 4}, env=PettingChessEnv()):
+    def __init__(self, config = {"random_start" : 0}, env=PettingChessEnv()):
         super().__init__()
         self.env = env
         env.reset()
@@ -378,6 +382,10 @@ class PettingZooEnv_v2(MultiAgentEnv):
 
     def render(self, mode="human"):
         return self.env.render(mode)
+
+    @property
+    def agent_selection(self):
+        return self.env.agent_selection
 
     @property
     def get_sub_environments(self):

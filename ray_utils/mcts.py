@@ -6,6 +6,7 @@ import collections
 import math
 
 import numpy as np
+import copy
 
 
 class Node:
@@ -86,10 +87,14 @@ class Node:
         masked_child_score = child_score
         masked_child_score[~self.valid_actions] = -1e12
         if self.mcts.exploit_child_value:
-            return np.argmax(masked_child_score)
+            action = np.argmax(masked_child_score)
+            assert self.valid_actions[action] == 1
+            return action
         else:
-            masked_child_score += 1e12
-            return np.random.choice(np.arange(len(masked_child_score)),p = masked_child_score/np.sum(masked_child_score))
+            masked_child_score += 1e28
+            action = np.random.choice(np.arange(len(masked_child_score)),p = masked_child_score/np.sum(masked_child_score))
+            assert self.valid_actions[action] == 1
+            return action
 
     def select(self):
         current_node = self
@@ -129,15 +134,20 @@ class Node:
             current.number_visits += 1
             current.total_value += value
             current = current.parent
+        
             
 
 
 class RootParentNode:
-    def __init__(self, env):
+    def __init__(self, env,state=None):
         self.parent = None
         self.child_total_value = collections.defaultdict(float)
         self.child_number_visits = collections.defaultdict(float)
         self.env = env
+        if state is None:
+            self.state = env.get_state()
+        else:
+            self.state = state
 
 
 class MCTS:
@@ -155,7 +165,9 @@ class MCTS:
         self.exploit_child_value = mcts_param["argmax_child_value"]
 
     def compute_action(self, node):
+        initial_state = copy.deepcopy(node.state)
         for _ in range(self.num_sims):
+            node.env.set_state(copy.deepcopy(initial_state))
             leaf = node.select()
             if leaf.done:
                 value = leaf.reward * 10
@@ -176,6 +188,7 @@ class MCTS:
             tree_policy
         )  # to avoid overflows when computing softmax
         tree_policy = np.power(tree_policy, self.temperature)
+        tree_policy *= node.valid_actions
         tree_policy = tree_policy / np.sum(tree_policy)
         epsilon_exploration = np.random.choice([True,False], p = [self.epsilon, 1-self.epsilon])
         if self.exploit and not epsilon_exploration:
@@ -185,4 +198,6 @@ class MCTS:
         else:
             # otherwise sample an action according to tree policy probabilities
             action = np.random.choice(np.arange(node.action_space_size), p=tree_policy)
+        assert node.valid_actions[action] == 1
+        node.env.set_state(initial_state)
         return tree_policy, action, node.children[action]

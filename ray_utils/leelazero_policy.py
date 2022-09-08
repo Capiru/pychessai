@@ -111,7 +111,7 @@ class LeelaZeroPolicy(TorchPolicy):
                 gc.collect()
                 # record action
                 actions.append(action)
-                print(f"{chess_utils.actions_to_moves[action]} taken")
+                print(f"{chess_utils.actions_to_moves[action]} taken, board: {self.env.env.board.fen()}")
                 # store new node
                 episode.user_data["tree_node"] = tree_node
 
