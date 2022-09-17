@@ -136,7 +136,7 @@ class LeelaZero(TorchModelV2,nn.Module):
         return masked_policy+action_mask
 
     def get_board_evaluation(board):
-        return None
+        return self.compute_priors_and_value(obs)
 
     def compute_priors_and_value(self, obs):
         new_obs = torch.from_numpy(obs["observation"].astype(np.float32).reshape([1,8,8,self.input_channel_size]))
