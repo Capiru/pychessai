@@ -46,6 +46,12 @@ class RandomLegalPolicy(Policy):
         return [self.action_space_for_sampling.sample() for _ in obs_batch], [], {}
 
     @override(Policy)
+    def compute_actions_from_input_dict(
+        self, input_dict, explore=None, timestep=None, episodes=None, **kwargs
+    ):
+        return None
+
+    @override(Policy)
     def learn_on_batch(self, samples):
         """No learning."""
         return {}

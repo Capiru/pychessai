@@ -19,12 +19,13 @@ from ray_utils.leelazero_trainer import LeelaZeroTrainer
 from ray.rllib.policy.policy import PolicySpec
 from ray.rllib.examples.policy.random_policy import RandomPolicy
 from ray_utils.randomlegalpolicy import RandomLegalPolicy
+from ray_utils.leelazero_policy import LeelaZeroPolicy
 
 def policy_mapping_fn(agent_id, episode, worker, **kwargs):
     # agent_id = [0|1] -> policy depends on episode ID
     # This way, we make sure that both policies sometimes play agent0
     # (start player) and sometimes agent1 (player to move 2nd).
-    return "main" if episode.episode_id % 2 == agent_id else "random"
+    return "main" if int(agent_id.split("_")[-1]) % 2 == 0 else "random"
 
 try:
     def env_creator(env_config):
@@ -52,8 +53,8 @@ try:
     N_ITER = 2000
     s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
     mcts_config = {"mcts_config": {
-                "num_simulations": 100,
-                "argmax_tree_policy": False,
+                "num_simulations": 2000,
+                "argmax_tree_policy": True,
                 "add_dirichlet_noise": False,
                 "argmax_child_value":True,
                 "puct_coefficient":np.sqrt(2),
@@ -68,25 +69,24 @@ try:
         max_failures=0,
         config={
             "env": "myEnv",
-            "num_workers": 1,
+            "num_workers": 2,
             "num_gpus": 1,
-            "train_batch_size": 1,
+            "train_batch_size": 256,
             "multiagent": {
-            # Initial policy map: Random and PPO. This will be expanded
-            # to more policy snapshots taken from "main" against which "main"
-            # will then play (instead of "random"). This is done in the
-            # custom callback defined above (`SelfPlayCallback`).
             "policies": {
                 # Our main policy, we'd like to optimize.
-                "main": PolicySpec(config = mcts_config),
-                # An initial random opponent to play against.
-                "random": PolicySpec(config = {"mcts_config": {
-                "num_simulations": 2,
-                "argmax_tree_policy": False,
+                "main": PolicySpec(config = {"mcts_config": {
+                "num_simulations": 150,
+                "argmax_tree_policy": True,
                 "add_dirichlet_noise": False,
                 "argmax_child_value":True,
                 "puct_coefficient":np.sqrt(2),
-                "epsilon": 0.00,
+                "epsilon": 0.05,
+                "turn_based_flip":True}}),
+                # An initial random opponent to play against.
+                "random": PolicySpec(config = {"mcts_config": {
+                "num_simulations": 10,
+                "epsilon": 0.99,
                 "turn_based_flip":True}}),#policy_class=RandomLegalPolicy),
             },
             # Assign agent 0 and 1 randomly to the "main" policy or

@@ -72,37 +72,19 @@ class LeelaZeroPolicy(TorchPolicy):
         with torch.no_grad():
             actions = []
             for i, episode in enumerate(episodes):
-                print(input_dict["infos"],input_dict["t"],input_dict["dones"])
-                if episode.length == 0:
-                    # if first time step of episode, get initial env state
-                    env_state = episode.user_data["initial_state"]
-                    # create tree root node
-                    obs, rew, done, info = self.env.env.last()
-                    tree_node = Node(
-                        state=env_state,
-                        obs=obs,
-                        reward=rew,
-                        done=done,
-                        action=None,
-                        parent=RootParentNode(env=self.env),
-                        mcts=self.mcts,
-                    )
-                    # self.parent_node = MonteCarloSearchNode(self.model,None,self.env.env.board.turn,self.env.env.board)
-                    # score,move = self.parent_node.search(n_simulations = self.n_simulations)
-                    # print(score,move)
-                else:
-                    # otherwise get last root node from previous time step
-                    #tree_node = episode.user_data["tree_node"]
-                    obs, rew, done, info = self.env.env.last()
-                    tree_node = Node(
-                        state=self.env.get_state(),
-                        obs=obs,
-                        reward=rew,
-                        done=done,
-                        action=None,
-                        parent=RootParentNode(env=self.env),
-                        mcts=self.mcts,
-                    )
+                env_state = episode.user_data["current_state"][-1]
+                # create tree root node
+                self.env.set_state(env_state)
+                obs, rew, done, info = self.env.env.last()
+                tree_node = Node(
+                    state=env_state,
+                    obs=obs,
+                    reward=rew,
+                    done=done,
+                    action=None,
+                    parent=RootParentNode(env=self.env),
+                    mcts=self.mcts,
+                )
 
                 # run monte carlo simulations to compute the actions
                 # and record the tree
@@ -112,9 +94,7 @@ class LeelaZeroPolicy(TorchPolicy):
                 # record action
                 actions.append(action)
                 print(f"{chess_utils.actions_to_moves[action]} taken, board: {self.env.env.board.fen()}")
-                obs_d, rew_d, done_d, info_d = self.env.step(action)
-                if done_d:
-                    break
+                #obs_d, rew_d, done_d, info_d = self.env.step(action)
                 # store new node
                 episode.user_data["tree_node"] = tree_node
 
@@ -123,7 +103,7 @@ class LeelaZeroPolicy(TorchPolicy):
                     episode.user_data["mcts_policies"] = [mcts_policy]
                 else:
                     episode.user_data["mcts_policies"].append(mcts_policy)
-
+                break
             return (
                 np.array(actions),
                 [],

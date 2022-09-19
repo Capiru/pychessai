@@ -19,6 +19,7 @@ from ray_utils.leelazero_trainer import LeelaZeroTrainer
 from ray.rllib.policy.policy import PolicySpec
 from ray.rllib.examples.policy.random_policy import RandomPolicy
 from ray_utils.randomlegalpolicy import RandomLegalPolicy
+from ray_utils.leelazero_policy import LeelaZeroPolicy
 
 def policy_mapping_fn(agent_id, episode, worker, **kwargs):
     # agent_id = [0|1] -> policy depends on episode ID
@@ -45,7 +46,7 @@ mcts_config = {"mcts_config": {
                 "puct_coefficient":np.sqrt(2),
                 "epsilon": 0.00,
                 "turn_based_flip":True}}
-config={
+config={    
             "env": "myEnv",
             "num_workers": 1,
             "num_gpus": 1,
@@ -93,4 +94,8 @@ ray_results = "/ray_results/"
 N_ITER = 2000
 s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
 
-LeelaTrainer.train()
+from ray.rllib.evaluation.rollout_worker import RolloutWorker
+worker = RolloutWorker(env_creator = lambda config: PettingZooEnv_v2(),policy_spec=LeelaZeroPolicy)
+print(worker.sample())
+
+

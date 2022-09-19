@@ -306,7 +306,7 @@ class PettingZooEnv_v2(MultiAgentEnv):
         }
     """
 
-    def __init__(self, config = {"random_start" : 0}, env=PettingChessEnv()):
+    def __init__(self, config = {"random_start" : 4}, env=PettingChessEnv()):
         super().__init__()
         self.env = env
         env.reset()
@@ -351,7 +351,6 @@ class PettingZooEnv_v2(MultiAgentEnv):
     def step(self, action):
         try:
             self.env.step(action[self.env.agent_selection])
-            print("Action taken by env:",action,self.env.board.fen())
         except (KeyError,IndexError):
             self.env.step(action)
         
@@ -362,18 +361,17 @@ class PettingZooEnv_v2(MultiAgentEnv):
         while self.env.agents:
             obs, rew, done, info = self.env.last()
             a = self.env.agent_selection
-            info["state"] = self.get_state()
             obs_d[a] = obs
             rew_d[a] = rew
             done_d[a] = done
             info_d[a] = info
             if self.env.dones[self.env.agent_selection]:
+                
                 self.env.step(None)
+                done_d["__all__"] = True
             else:
+                done_d["__all__"] = False
                 break
-
-        all_done = not self.env.agents
-        done_d["__all__"] = all_done
 
         return obs_d, rew_d, done_d, info_d
 
