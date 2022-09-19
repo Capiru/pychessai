@@ -45,6 +45,16 @@ class LeelaZeroDefaultCallbacks(DefaultCallbacks):
         env = base_env.get_sub_environments()[0]
         state = env.get_state()
         episode.user_data["initial_state"] = state
+        episode.user_data["current_state"] = [state]
+
+    def on_episode_step(
+        self, worker, base_env, policies,
+        episode, **kwargs) -> None:
+        env = base_env.get_sub_environments()[0]
+        state = env.get_state()
+        episode.user_data["current_state"].append(state)
+
+
 
 
 # fmt: off
