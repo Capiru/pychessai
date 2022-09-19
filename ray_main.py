@@ -80,7 +80,14 @@ try:
                 # Our main policy, we'd like to optimize.
                 "main": PolicySpec(config = mcts_config),
                 # An initial random opponent to play against.
-                "random": PolicySpec(config = mcts_config),#policy_class=RandomLegalPolicy),
+                "random": PolicySpec(config = {"mcts_config": {
+                "num_simulations": 2,
+                "argmax_tree_policy": False,
+                "add_dirichlet_noise": False,
+                "argmax_child_value":True,
+                "puct_coefficient":np.sqrt(2),
+                "epsilon": 0.00,
+                "turn_based_flip":True}}),#policy_class=RandomLegalPolicy),
             },
             # Assign agent 0 and 1 randomly to the "main" policy or
             # to the opponent ("random" at first). Make sure (via episode_id)

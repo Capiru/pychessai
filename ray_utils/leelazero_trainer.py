@@ -27,6 +27,7 @@ from ray.tune.registry import ENV_CREATOR, _global_registry
 from ray.util.iter import LocalIterator
 
 from ray_utils.leelazero_policy import LeelaZeroPolicy
+from ray_utils.legacy_leela_policy import LeelaZeroLegacyPolicy
 from ray_utils.mcts import MCTS
 
 torch, nn = try_import_torch()

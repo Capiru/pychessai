@@ -340,7 +340,7 @@ class PettingZooEnv_v2(MultiAgentEnv):
         self._agent_ids = set(self.env.agents)
 
     def observe(self):
-        return self.env.observe(self.env.agent_selection)
+        return {self.env.agent_selection:self.env.observe(self.env.agent_selection),"state":self.get_state()}
 
     def reset(self):
         self.env.reset()
@@ -351,8 +351,10 @@ class PettingZooEnv_v2(MultiAgentEnv):
     def step(self, action):
         try:
             self.env.step(action[self.env.agent_selection])
+            print("Action taken by env:",action,self.env.board.fen())
         except (KeyError,IndexError):
             self.env.step(action)
+        
         obs_d = {}
         rew_d = {}
         done_d = {}
@@ -360,6 +362,7 @@ class PettingZooEnv_v2(MultiAgentEnv):
         while self.env.agents:
             obs, rew, done, info = self.env.last()
             a = self.env.agent_selection
+            info["state"] = self.get_state()
             obs_d[a] = obs
             rew_d[a] = rew
             done_d[a] = done

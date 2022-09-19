@@ -14,7 +14,8 @@ torch, _ = try_import_torch()
 
 import gc
 
-class LeelaZeroPolicy(TorchPolicy):
+
+class LeelaZeroLegacyPolicy(TorchPolicy):
     def __init__(
         self,
         observation_space,
@@ -40,6 +41,7 @@ class LeelaZeroPolicy(TorchPolicy):
         self.env_creator = env_creator
         self.mcts = mcts_creator()
         self.env = self.env_creator()
+        self.env.reset()
         self.obs_space = observation_space
 
     @override(TorchPolicy)
@@ -72,51 +74,22 @@ class LeelaZeroPolicy(TorchPolicy):
         with torch.no_grad():
             actions = []
             for i, episode in enumerate(episodes):
-                print(input_dict["infos"],input_dict["t"],input_dict["dones"])
-                if episode.length == 0:
-                    # if first time step of episode, get initial env state
-                    env_state = episode.user_data["initial_state"]
-                    # create tree root node
-                    obs, rew, done, info = self.env.env.last()
-                    tree_node = Node(
-                        state=env_state,
-                        obs=obs,
-                        reward=rew,
-                        done=done,
-                        action=None,
-                        parent=RootParentNode(env=self.env),
-                        mcts=self.mcts,
-                    )
-                    # self.parent_node = MonteCarloSearchNode(self.model,None,self.env.env.board.turn,self.env.env.board)
-                    # score,move = self.parent_node.search(n_simulations = self.n_simulations)
-                    # print(score,move)
-                else:
-                    # otherwise get last root node from previous time step
-                    #tree_node = episode.user_data["tree_node"]
-                    obs, rew, done, info = self.env.env.last()
-                    tree_node = Node(
-                        state=self.env.get_state(),
-                        obs=obs,
-                        reward=rew,
-                        done=done,
-                        action=None,
-                        parent=RootParentNode(env=self.env),
-                        mcts=self.mcts,
-                    )
-
+                # if first time step of episode, get initial env state
+                env_state = episode.user_data["initial_state"]
+                # create tree root node
+                obs = self.env.set_state(env_state)
+                self.parent_node = MonteCarloSearchNode(self.model,None,self.env.env.board.turn,self.env.env.board)
+                score,move = self.parent_node.search(n_simulations = self.mcts.n_simulations)
+                print(score,move)
+                action = chess_utils.moves_to_actions[move]
                 # run monte carlo simulations to compute the actions
                 # and record the tree
-                mcts_policy, action, tree_node = self.mcts.compute_action(tree_node)
 
                 gc.collect()
                 # record action
                 actions.append(action)
                 print(f"{chess_utils.actions_to_moves[action]} taken, board: {self.env.env.board.fen()}")
-                obs_d, rew_d, done_d, info_d = self.env.step(action)
-                if done_d:
-                    break
                 # store new node
-                episode.user_data["tree_node"] = tree_node
 
                 # store mcts policies vectors and current tree root node
                 if episode.length == 0:
