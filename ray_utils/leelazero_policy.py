@@ -7,7 +7,7 @@ from ray.rllib.utils.annotations import override
 from ray.rllib.utils.framework import try_import_torch
 from ray.rllib.utils.metrics.learner_info import LEARNER_STATS_KEY
 
-from search.search import MonteCarloSearchNode
+#from search.search import MonteCarloSearchNode
 from pettingzoo.classic.chess import chess_utils
 
 torch, _ = try_import_torch()
@@ -41,6 +41,8 @@ class LeelaZeroPolicy(TorchPolicy):
         self.mcts = mcts_creator()
         self.env = self.env_creator()
         self.obs_space = observation_space
+        # only used in multi policy competitive environments
+        self.elo = 400
 
     @override(TorchPolicy)
     def compute_actions(
@@ -90,11 +92,8 @@ class LeelaZeroPolicy(TorchPolicy):
                 # and record the tree
                 mcts_policy, action, tree_node = self.mcts.compute_action(tree_node)
 
-                gc.collect()
                 # record action
                 actions.append(action)
-                print(f"{chess_utils.actions_to_moves[action]} taken, board: {self.env.env.board.fen()}")
-                #obs_d, rew_d, done_d, info_d = self.env.step(action)
                 # store new node
                 episode.user_data["tree_node"] = tree_node
 

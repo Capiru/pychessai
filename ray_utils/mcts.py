@@ -41,10 +41,10 @@ class Node:
             current_agent = self.state.agent_selection
             self.reward = self.reward[current_agent]
             self.done = self.done[current_agent]
-            self.valid_actions = obs[current_agent]["action_mask"].astype(np.bool)
+            self.valid_actions = obs[current_agent]["action_mask"].astype(bool)
             self.obs = obs[current_agent]
         else:
-            self.valid_actions = obs["action_mask"].astype(np.bool)
+            self.valid_actions = obs["action_mask"].astype(bool)
             self.obs = obs
 
 

@@ -71,7 +71,7 @@ class CFG:
         DEVICE = torch.device("cuda:0")
     else:
         DEVICE = torch.device("cpu")
-    print("Device set on : ",DEVICE)
+    #print("Device set on : ",DEVICE)
     criterion = nn.MSELoss()
     bce_criterion = nn.BCEWithLogitsLoss()
     

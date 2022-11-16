@@ -2,9 +2,9 @@ import gym
 import gym_chess
 import chess as ch
 import numpy as np
-from match import *
-from move_choice import *
-from policy import is_move_legal,map_policy_to_move
+#from match import *
+#from move_choice import *
+#from policy import is_move_legal,map_policy_to_move
 from pettingzoo.classic import rps_v2,chess_v5
 import gym.spaces as spaces
 from pettingzoo import AECEnv

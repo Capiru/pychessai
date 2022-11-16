@@ -2,9 +2,9 @@ import logging
 from typing import Type
 
 from ray.rllib.algorithms.algorithm import Algorithm
-from ray.rllib.agents import with_common_config
-from ray.rllib.agents.callbacks import DefaultCallbacks
-from ray.rllib.agents.trainer import Trainer
+from ray.rllib.algorithms.algorithm import with_common_config
+from ray.rllib.algorithms.callbacks import DefaultCallbacks
+from ray.rllib.algorithms.algorithm import Algorithm
 from ray.rllib.evaluation.worker_set import WorkerSet
 from ray.rllib.execution.replay_ops import (
     SimpleReplayBuffer,
@@ -40,7 +40,10 @@ class LeelaZeroDefaultCallbacks(DefaultCallbacks):
     If you use custom callbacks, you must extend this class and call super()
     for on_episode_start.
     """
+    def __init__(self):
+        super().__init__()
 
+    @override(DefaultCallbacks)
     def on_episode_start(self, worker, base_env, policies, episode, **kwargs):
         # save env state when an episode starts
         env = base_env.get_sub_environments()[0]
@@ -48,6 +51,7 @@ class LeelaZeroDefaultCallbacks(DefaultCallbacks):
         episode.user_data["initial_state"] = state
         episode.user_data["current_state"] = [state]
 
+    @override(DefaultCallbacks)
     def on_episode_step(
         self, worker, base_env, policies,
         episode, **kwargs) -> None:
@@ -55,14 +59,14 @@ class LeelaZeroDefaultCallbacks(DefaultCallbacks):
         state = env.get_state()
         episode.user_data["current_state"].append(state)
 
+    @override(DefaultCallbacks)
     def on_episode_end(self,worker,base_env,policies,episode,**kwargs):
         env = base_env.get_sub_environments()[0]
         if env.env.board.outcome():
             winner = env.env.board.outcome().winner
         else:
             winner = "Draw"
-        print("Game Over:",winner)
-        print("Reward:",episode)
+        logging.info("Game Over:"+str(winner)+"Reward:"+str(policies)+str(episode.agent_rewards))
 
 
 
@@ -206,53 +210,54 @@ class LeelaZeroPolicyWrapperClass(LeelaZeroPolicy):
 
 class LeelaZeroTrainer(Algorithm):
     @classmethod
-    @override(Trainer)
+    @override(Algorithm)
     def get_default_config(cls) -> TrainerConfigDict:
         return DEFAULT_CONFIG
 
-    @override(Trainer)
+    @override(Algorithm)
     def get_default_policy_class(self, config: TrainerConfigDict) -> Type[Policy]:
         return LeelaZeroPolicyWrapperClass
 
-    @staticmethod
-    @override(Trainer)
-    def execution_plan(
-        workers: WorkerSet, config: TrainerConfigDict, **kwargs
-    ) -> LocalIterator[dict]:
-        assert (
-            len(kwargs) == 0
-        ), "Alpha zero execution_plan does NOT take any additional parameters"
 
-        rollouts = ParallelRollouts(workers, mode="bulk_sync")
+    # @staticmethod
+    # @override(Algorithm)
+    # def execution_plan(
+    #     workers: WorkerSet, config: TrainerConfigDict, **kwargs
+    # ) -> LocalIterator[dict]:
+    #     assert (
+    #         len(kwargs) == 0
+    #     ), "Alpha zero execution_plan does NOT take any additional parameters"
 
-        if config["simple_optimizer"]:
-            train_op = rollouts.combine(
-                ConcatBatches(
-                    min_batch_size=config["train_batch_size"],
-                    count_steps_by=config["multiagent"]["count_steps_by"],
-                )
-            ).for_each(TrainOneStep(workers, num_sgd_iter=config["num_sgd_iter"]))
-        else:
-            replay_buffer = SimpleReplayBuffer(config["buffer_size"])
+    #     rollouts = ParallelRollouts(workers, mode="bulk_sync")
 
-            store_op = rollouts.for_each(
-                StoreToReplayBuffer(local_buffer=replay_buffer)
-            )
+    #     if config["simple_optimizer"]:
+    #         train_op = rollouts.combine(
+    #             ConcatBatches(
+    #                 min_batch_size=config["train_batch_size"],
+    #                 count_steps_by=config["multiagent"]["count_steps_by"],
+    #             )
+    #         ).for_each(TrainOneStep(workers, num_sgd_iter=config["num_sgd_iter"]))
+    #     else:
+    #         replay_buffer = SimpleReplayBuffer(config["buffer_size"])
 
-            replay_op = (
-                Replay(local_buffer=replay_buffer)
-                .filter(WaitUntilTimestepsElapsed(config["learning_starts"]))
-                .combine(
-                    ConcatBatches(
-                        min_batch_size=config["train_batch_size"],
-                        count_steps_by=config["multiagent"]["count_steps_by"],
-                    )
-                )
-                .for_each(TrainOneStep(workers, num_sgd_iter=config["num_sgd_iter"]))
-            )
+    #         store_op = rollouts.for_each(
+    #             StoreToReplayBuffer(local_buffer=replay_buffer)
+    #         )
 
-            train_op = Concurrently(
-                [store_op, replay_op], mode="round_robin", output_indexes=[1]
-            )
+    #         replay_op = (
+    #             Replay(local_buffer=replay_buffer)
+    #             .filter(WaitUntilTimestepsElapsed(config["learning_starts"]))
+    #             .combine(
+    #                 ConcatBatches(
+    #                     min_batch_size=config["train_batch_size"],
+    #                     count_steps_by=config["multiagent"]["count_steps_by"],
+    #                 )
+    #             )
+    #             .for_each(TrainOneStep(workers, num_sgd_iter=config["num_sgd_iter"]))
+    #         )
 
-        return StandardMetricsReporting(train_op, workers, config)
+    #         train_op = Concurrently(
+    #             [store_op, replay_op], mode="round_robin", output_indexes=[1]
+    #         )
+
+    #     return StandardMetricsReporting(train_op, workers, config)
