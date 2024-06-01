@@ -1,12 +1,12 @@
 import chess as ch
 
 from pychessai.agents import Agent
-from pychessai.utils.eval import get_board_evaluation
-from pychessai.utils.move_choice import (
+from pychessai.move_choice.minimax import (
     minimax,
     minimax_with_pruning,
     minimax_with_pruning_and_policyeval,
 )
+from pychessai.utils.eval import get_board_evaluation
 
 
 class MinimaxAgent(Agent):

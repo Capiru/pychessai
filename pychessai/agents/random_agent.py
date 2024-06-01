@@ -1,7 +1,7 @@
 import chess as ch
 
 from pychessai.agents import Agent
-from pychessai.utils.move_choice import legal_moves, random_choice
+from pychessai.move_choice import legal_moves, random_choice
 
 
 class RandomAgent(Agent):

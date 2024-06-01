@@ -1,12 +1,11 @@
 import chess as ch
 import numpy as np
 
-from pychessai.utils.move_choice import (
-    legal_moves,
+from pychessai.move_choice import legal_moves, random_choice
+from pychessai.move_choice.minimax import (
     minimax,
     minimax_with_pruning,
     minimax_with_pruning_and_policyeval,
-    random_choice,
 )
 
 

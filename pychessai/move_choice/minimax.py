@@ -1,27 +1,12 @@
-from typing import Union
-
 import chess as ch
 import numpy as np
 
+from pychessai.move_choice import legal_moves
 from pychessai.utils.eval import get_board_evaluation
 from pychessai.utils.policy import get_sorted_move_list
 
 
-def random_choice(
-    possible_moves: list,
-    probability_map: Union[list, np.ndarray] = [],
-    exploration_size: int = 1,
-):
-    if probability_map is None or len(probability_map) == 0:
-        probability_map = [1 / len(possible_moves) for x in range(len(possible_moves))]
-    return np.random.choice(possible_moves, size=exploration_size, p=probability_map)
-
-
-def legal_moves(board: ch.Board):
-    return list(board.legal_moves)
-
-
-def minimax(board, depth, is_player, positions=0, agent=None):
+def minimax(board: ch.Board, depth: int, is_player: bool, positions=0, agent=None):
     # depth 1 - 21 positions - time 0.003461
     # depth 2 - 621 positions - time 0.091520
     # depth 3 - 13781 positions - time 1.991260
@@ -36,7 +21,7 @@ def minimax(board, depth, is_player, positions=0, agent=None):
     if is_player:
         max_eval = -np.inf
         best_move = None
-        for move in list(board.legal_moves):
+        for move in legal_moves(board):
             # print(max_eval,best_move,move,board.fen())
             board.push(move)
             eval, a, positions = minimax(board, depth - 1, False, positions, agent)
@@ -48,7 +33,7 @@ def minimax(board, depth, is_player, positions=0, agent=None):
     else:
         min_eval = np.inf
         best_move = None
-        for move in list(board.legal_moves):
+        for move in legal_moves(board):
             # print(min_eval,best_move,move,board.fen())
             board.push(move)
             eval, a, positions = minimax(board, depth - 1, True, positions, agent)
@@ -60,7 +45,13 @@ def minimax(board, depth, is_player, positions=0, agent=None):
 
 
 def minimax_with_pruning(
-    board, depth, is_player, alpha=-np.inf, beta=np.inf, agent=None, positions=0
+    board: ch.Board,
+    depth: int,
+    is_player: bool,
+    alpha=-np.inf,
+    beta=np.inf,
+    agent=None,
+    positions=0,
 ):
     # depth 1 - 21 positions - time 0.003673
     # depth 2 - 70 positions - time 0.010080
@@ -78,7 +69,7 @@ def minimax_with_pruning(
     if is_player:
         max_eval = -np.inf
         best_move = None
-        for move in list(board.legal_moves):
+        for move in legal_moves(board):
             board.push(move)
             eval, a, positions = minimax_with_pruning(
                 board, depth - 1, False, alpha, beta, agent, positions=positions
@@ -94,7 +85,7 @@ def minimax_with_pruning(
     else:
         min_eval = np.inf
         best_move = None
-        for move in list(board.legal_moves):
+        for move in legal_moves(board):
             board.push(move)
             eval, a, positions = minimax_with_pruning(
                 board, depth - 1, True, alpha, beta, agent, positions=positions
@@ -110,9 +101,9 @@ def minimax_with_pruning(
 
 
 def minimax_with_pruning_and_policyeval(
-    board,
-    depth,
-    is_player,
+    board: ch.Board,
+    depth: int,
+    is_player: bool,
     alpha=-np.inf,
     beta=np.inf,
     value_agent=None,
