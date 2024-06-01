@@ -19,23 +19,27 @@ class MinimaxAgent(Agent):
         is_white=True,
         search_function=minimax,
         policy_function=legal_moves,
+        eval_function=get_simple_board_evaluation,
     ):
-        super().__init__(depth, board, is_white)
-        self.positions = 0
-        self.search_function = search_function
-        self.policy_function = policy_function
+        super().__init__(
+            depth, board, is_white, search_function, policy_function, eval_function
+        )
 
     def choose_move(self, board):
         self.board = board
         score, move, positions = self.search_function(
-            self.board, self.depth, self.is_white
+            self.board,
+            self.depth,
+            self.is_white,
+            eval_function=self.eval_function,
+            policy_function=self.policy_function,
         )
         self.positions += positions
         self.eval = score
         return [move]
 
     def get_board_evaluation(self, board: ch.Board) -> float:
-        return get_simple_board_evaluation(board)
+        return self.eval_function(board)
 
 
 class MinimaxPruningAgent(MinimaxAgent):
@@ -65,7 +69,11 @@ class MinimaxPruningPositionRedundancyAgent(MinimaxAgent):
     def choose_move(self, board):
         self.board = board
         score, move, positions, positions_analysed = self.search_function(
-            self.board, self.depth, self.is_white
+            self.board,
+            self.depth,
+            self.is_white,
+            eval_function=self.eval_function,
+            policy_function=self.policy_function,
         )
         self.positions_analysed.update(positions_analysed)
         self.positions += positions

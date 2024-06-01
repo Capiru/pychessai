@@ -1,15 +1,29 @@
 from abc import ABC, abstractmethod
+from typing import Any, Callable
 
 import chess as ch
 
 
 class Agent(ABC):
-    def __init__(self, depth: int, board: ch.Board, is_white: bool) -> None:
+    def __init__(
+        self,
+        depth: int,
+        board: ch.Board,
+        is_white: bool,
+        search_function: Callable,
+        policy_function: Callable,
+        eval_function: Callable,
+    ) -> None:
         super().__init__()
         self.elo = 400
         self.depth = depth
         self.board = board
         self.is_white = is_white
+        self.search_function = search_function
+        self.policy_function = policy_function
+        self.eval_function = eval_function
+        self.positions = 0
+        self.positions_analysed: Any = {}
 
     @abstractmethod
     def choose_move(self, board: ch.Board) -> ch.Move:
@@ -20,6 +34,7 @@ class Agent(ABC):
 
     @abstractmethod
     def get_board_evaluation(self, board: ch.Board) -> float:
+        # TODO: This function might no longer be needed.
         raise Exception("You should implement a get_board_evaluation method")
 
 
@@ -29,10 +44,15 @@ class TrainableAgent(Agent):
         depth: int,
         board: ch.Board,
         is_white: bool,
+        search_function: Callable,
+        policy_function: Callable,
+        eval_function: Callable,
         training: bool,
         model_parameters: dict,
     ) -> None:
-        super().__init__(depth, board, is_white)
+        super().__init__(
+            depth, board, is_white, search_function, policy_function, eval_function
+        )
         self.training = training
         self.model_parameters = model_parameters
 
