@@ -1,7 +1,12 @@
 import chess as ch
 import numpy as np
 
-from pychessai.utils.move_choice import legal_moves, minimax, random_choice
+from pychessai.utils.move_choice import (
+    legal_moves,
+    minimax,
+    minimax_with_pruning,
+    random_choice,
+)
 
 
 def test_random_choice(initial_board):
@@ -26,6 +31,18 @@ def test_minimax(initial_board, board_checkmate_in_1, board_checkmate_in_2):
     score, move, _ = minimax(board_checkmate_in_1, 1, True)
     assert move == ch.Move.from_uci("h5f7")
     score, move, _ = minimax(board_checkmate_in_2, 3, False)
+    assert move == ch.Move.from_uci("e1h1")
+
+
+def test_minimax_with_pruning(
+    initial_board, board_checkmate_in_1, board_checkmate_in_2
+):
+    score, move, _ = minimax_with_pruning(initial_board, 1, True)
+    assert score == 0
+    assert isinstance(move, ch.Move)
+    score, move, _ = minimax_with_pruning(board_checkmate_in_1, 1, True)
+    assert move == ch.Move.from_uci("h5f7")
+    score, move, _ = minimax_with_pruning(board_checkmate_in_2, 3, False)
     assert move == ch.Move.from_uci("e1h1")
 
 

@@ -56,3 +56,53 @@ def minimax(board, depth, is_player, positions=0, agent=None):
                 best_move = move
             board.pop()
         return min_eval, best_move, positions
+
+
+def minimax_with_pruning(
+    board, depth, is_player, alpha=-np.inf, beta=np.inf, agent=None, positions=0
+):
+    # depth 1 - 21 positions - time 0.003673
+    # depth 2 - 70 positions - time 0.010080
+    # depth 3 - 545 positions - time 0.0784910
+    # depth 4 - 1964 positions - time 0.278105
+    # depth 5 - 14877 positions - time 2.12180
+    # depth 6 - 82579 positions - time 11.84326
+    positions += 1
+    if depth == 0 or board.is_game_over():
+        # this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
+        if agent is None:
+            return get_board_evaluation(board), None, positions
+        else:
+            return agent.get_board_evaluation(board), None, positions
+    if is_player:
+        max_eval = -np.inf
+        best_move = None
+        for move in list(board.legal_moves):
+            board.push(move)
+            eval, a, positions = minimax_with_pruning(
+                board, depth - 1, False, alpha, beta, agent, positions=positions
+            )
+            if eval >= max_eval:
+                max_eval = eval
+                best_move = move
+            board.pop()
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return max_eval, best_move, positions
+    else:
+        min_eval = np.inf
+        best_move = None
+        for move in list(board.legal_moves):
+            board.push(move)
+            eval, a, positions = minimax_with_pruning(
+                board, depth - 1, True, alpha, beta, agent, positions=positions
+            )
+            if eval <= min_eval:
+                min_eval = eval
+                best_move = move
+            board.pop()
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return min_eval, best_move, positions
