@@ -15,12 +15,11 @@ class Agent(ABC):
     def choose_move(self, board: ch.Board) -> ch.Move:
         raise Exception("You should implement a choose_move method")
 
-    @abstractmethod
     def update_board(self, board: ch.Board) -> None:
-        raise Exception("You should implement an update_board method")
+        self.board = board
 
     @abstractmethod
-    def get_board_evaluation(self) -> float:
+    def get_board_evaluation(self, board: ch.Board) -> float:
         raise Exception("You should implement a get_board_evaluation method")
 
 

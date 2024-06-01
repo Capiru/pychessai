@@ -11,8 +11,5 @@ class RandomAgent(Agent):
     def choose_move(self, board):
         return random_choice(legal_moves(board), None, 1)
 
-    def update_board(self, board: ch.Board) -> None:
-        self.board = board
-
-    def get_board_evaluation(self) -> float:
+    def get_board_evaluation(self, board: ch.Board = ch.Board()) -> float:
         return 0.0
