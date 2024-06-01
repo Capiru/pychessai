@@ -7,7 +7,7 @@ from pychessai.move_choice.minimax import (
     minimax_with_pruning_and_policyeval,
     minimax_with_pruning_policyeval_positionredundancy,
 )
-from pychessai.utils.eval import get_board_evaluation
+from pychessai.utils.eval import get_simple_board_evaluation
 
 
 class MinimaxAgent(Agent):
@@ -28,7 +28,7 @@ class MinimaxAgent(Agent):
         return [move]
 
     def get_board_evaluation(self, board: ch.Board) -> float:
-        return get_board_evaluation(board)
+        return get_simple_board_evaluation(board)
 
 
 class MinimaxPruningAgent(MinimaxAgent):

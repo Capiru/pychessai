@@ -2,7 +2,7 @@ import chess as ch
 import numpy as np
 
 from pychessai.move_choice import legal_moves
-from pychessai.utils.eval import get_board_evaluation
+from pychessai.utils.eval import get_simple_board_evaluation
 from pychessai.utils.policy import get_sorted_move_list
 
 
@@ -15,9 +15,9 @@ def minimax(board: ch.Board, depth: int, is_player: bool, positions=0, agent=Non
     if depth == 0 or board.is_game_over():
         # this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if agent is None:
-            return get_board_evaluation(board), None, positions
+            return get_simple_board_evaluation(board), None, positions
         else:
-            return agent.get_board_evaluation(board), None, positions
+            return agent.get_simple_board_evaluation(board), None, positions
     if is_player:
         max_eval = -np.inf
         best_move = None
@@ -63,9 +63,9 @@ def minimax_with_pruning(
     if depth == 0 or board.is_game_over():
         # this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if agent is None:
-            return get_board_evaluation(board), None, positions
+            return get_simple_board_evaluation(board), None, positions
         else:
-            return agent.get_board_evaluation(board), None, positions
+            return agent.get_simple_board_evaluation(board), None, positions
     if is_player:
         max_eval = -np.inf
         best_move = None
@@ -120,9 +120,9 @@ def minimax_with_pruning_and_policyeval(
     if depth == 0 or board.is_game_over():
         # this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
         if value_agent is None:
-            return get_board_evaluation(board), None, positions
+            return get_simple_board_evaluation(board), None, positions
         else:
-            eval = value_agent.get_board_evaluation(board)
+            eval = value_agent.get_simple_board_evaluation(board)
             return eval, None, positions
     sorted_list = get_sorted_move_list(board, agent=policy_model)
     if is_player:
@@ -174,9 +174,9 @@ def minimax_with_pruning_and_policyeval(
 
 
 def minimax_with_pruning_policyeval_positionredundancy(
-    board,
-    depth,
-    is_player,
+    board: ch.Board,
+    depth: int,
+    is_player: bool,
     alpha=-np.inf,
     beta=np.inf,
     value_agent=None,
@@ -197,9 +197,9 @@ def minimax_with_pruning_policyeval_positionredundancy(
             eval = positions_analysed[board.board_fen() + str(depth)]
         except KeyError:
             if value_agent is None:
-                eval = get_board_evaluation(board)
+                eval = get_simple_board_evaluation(board)
             else:
-                eval = value_agent.get_board_evaluation(board)
+                eval = value_agent.get_simple_board_evaluation(board)
             positions_analysed[board.board_fen() + str(depth)] = eval
         return eval, None, positions, positions_analysed
     sorted_list = get_sorted_move_list(board, agent=policy_model)
