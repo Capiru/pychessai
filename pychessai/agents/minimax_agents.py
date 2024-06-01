@@ -5,6 +5,7 @@ from pychessai.move_choice.minimax import (
     minimax,
     minimax_with_pruning,
     minimax_with_pruning_and_policyeval,
+    minimax_with_pruning_policyeval_positionredundancy,
 )
 from pychessai.utils.eval import get_board_evaluation
 
@@ -50,3 +51,25 @@ class MinimaxPruningWithPolicyAgent(MinimaxAgent):
         search_function=minimax_with_pruning_and_policyeval,
     ):
         super().__init__(depth, board, is_white, search_function)
+
+
+class MinimaxPruningWithPolicyPositionRedundancyAgent(MinimaxAgent):
+    def __init__(
+        self,
+        depth=3,
+        board=ch.Board(),
+        is_white=True,
+        search_function=minimax_with_pruning_policyeval_positionredundancy,
+    ):
+        super().__init__(depth, board, is_white, search_function)
+        self.positions_analysed = {}
+
+    def choose_move(self, board):
+        self.board = board
+        score, move, positions, positions_analysed = self.search_function(
+            self.board, self.depth, self.is_white
+        )
+        self.positions_analysed.update(positions_analysed)
+        self.positions += positions
+        self.eval = score
+        return [move]

@@ -3,6 +3,7 @@ from pychessai.agents.minimax_agents import (
     MinimaxAgent,
     MinimaxPruningAgent,
     MinimaxPruningWithPolicyAgent,
+    MinimaxPruningWithPolicyPositionRedundancyAgent,
 )
 from pychessai.agents.random_agent import RandomAgent
 
@@ -12,4 +13,5 @@ __all__ = [
     "MinimaxAgent",
     "MinimaxPruningAgent",
     "MinimaxPruningWithPolicyAgent",
+    "MinimaxPruningWithPolicyPositionRedundancyAgent",
 ]
