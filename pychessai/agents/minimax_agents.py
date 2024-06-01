@@ -2,7 +2,11 @@ import chess as ch
 
 from pychessai.agents import Agent
 from pychessai.utils.eval import get_board_evaluation
-from pychessai.utils.move_choice import minimax, minimax_with_pruning
+from pychessai.utils.move_choice import (
+    minimax,
+    minimax_with_pruning,
+    minimax_with_pruning_and_policyeval,
+)
 
 
 class MinimaxAgent(Agent):
@@ -33,5 +37,16 @@ class MinimaxPruningAgent(MinimaxAgent):
         board=ch.Board(),
         is_white=True,
         search_function=minimax_with_pruning,
+    ):
+        super().__init__(depth, board, is_white, search_function)
+
+
+class MinimaxPruningWithPolicyAgent(MinimaxAgent):
+    def __init__(
+        self,
+        depth=3,
+        board=ch.Board(),
+        is_white=True,
+        search_function=minimax_with_pruning_and_policyeval,
     ):
         super().__init__(depth, board, is_white, search_function)

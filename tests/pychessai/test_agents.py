@@ -1,6 +1,11 @@
 import chess as ch
 
-from pychessai.agents import MinimaxAgent, MinimaxPruningAgent, RandomAgent
+from pychessai.agents import (
+    MinimaxAgent,
+    MinimaxPruningAgent,
+    MinimaxPruningWithPolicyAgent,
+    RandomAgent,
+)
 
 
 def test_random_agent(initial_board):
@@ -16,6 +21,12 @@ def test_minimax_agent(board_checkmate_in_1):
 
 def test_minimax_pruning_agent(board_checkmate_in_1):
     minimax_pruning = MinimaxPruningAgent()
+    move = minimax_pruning.choose_move(board_checkmate_in_1)
+    assert move[0] == ch.Move.from_uci("h5f7")
+
+
+def test_minimax_pruning_with_policy_agent(board_checkmate_in_1):
+    minimax_pruning = MinimaxPruningWithPolicyAgent()
     move = minimax_pruning.choose_move(board_checkmate_in_1)
     assert move[0] == ch.Move.from_uci("h5f7")
 

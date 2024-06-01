@@ -5,6 +5,7 @@ from pychessai.utils.move_choice import (
     legal_moves,
     minimax,
     minimax_with_pruning,
+    minimax_with_pruning_and_policyeval,
     random_choice,
 )
 
@@ -43,6 +44,18 @@ def test_minimax_with_pruning(
     score, move, _ = minimax_with_pruning(board_checkmate_in_1, 1, True)
     assert move == ch.Move.from_uci("h5f7")
     score, move, _ = minimax_with_pruning(board_checkmate_in_2, 3, False)
+    assert move == ch.Move.from_uci("e1h1")
+
+
+def test_minimax_with_pruning_and_policyeval(
+    initial_board, board_checkmate_in_1, board_checkmate_in_2
+):
+    score, move, _ = minimax_with_pruning_and_policyeval(initial_board, 1, True)
+    assert score == 0
+    assert isinstance(move, ch.Move)
+    score, move, _ = minimax_with_pruning_and_policyeval(board_checkmate_in_1, 1, True)
+    assert move == ch.Move.from_uci("h5f7")
+    score, move, _ = minimax_with_pruning_and_policyeval(board_checkmate_in_2, 3, False)
     assert move == ch.Move.from_uci("e1h1")
 
 
