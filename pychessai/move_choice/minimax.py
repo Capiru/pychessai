@@ -12,6 +12,7 @@ def minimax(
     is_player: bool,
     positions=0,
     eval_function=get_simple_board_evaluation,
+    policy_function=legal_moves,
 ):
     # depth 1 - 21 positions - time 0.003461
     # depth 2 - 621 positions - time 0.091520
@@ -24,7 +25,7 @@ def minimax(
     if is_player:
         max_eval = -np.inf
         best_move = None
-        for move in legal_moves(board):
+        for move in policy_function(board):
             # print(max_eval,best_move,move,board.fen())
             board.push(move)
             eval, a, positions = minimax(
@@ -38,7 +39,7 @@ def minimax(
     else:
         min_eval = np.inf
         best_move = None
-        for move in legal_moves(board):
+        for move in policy_function(board):
             # print(min_eval,best_move,move,board.fen())
             board.push(move)
             eval, a, positions = minimax(
@@ -58,6 +59,7 @@ def minimax_with_pruning(
     alpha=-np.inf,
     beta=np.inf,
     eval_function=get_simple_board_evaluation,
+    policy_function=legal_moves,
     positions=0,
 ):
     # depth 1 - 21 positions - time 0.003673
@@ -73,7 +75,7 @@ def minimax_with_pruning(
     if is_player:
         max_eval = -np.inf
         best_move = None
-        for move in legal_moves(board):
+        for move in policy_function(board):
             board.push(move)
             eval, a, positions = minimax_with_pruning(
                 board, depth - 1, False, alpha, beta, eval_function, positions=positions
@@ -89,7 +91,7 @@ def minimax_with_pruning(
     else:
         min_eval = np.inf
         best_move = None
-        for move in legal_moves(board):
+        for move in policy_function(board):
             board.push(move)
             eval, a, positions = minimax_with_pruning(
                 board, depth - 1, True, alpha, beta, eval_function, positions=positions
@@ -104,84 +106,14 @@ def minimax_with_pruning(
         return min_eval, best_move, positions
 
 
-def minimax_with_pruning_and_policyeval(
+def minimax_with_pruning_positionredundancy(
     board: ch.Board,
     depth: int,
     is_player: bool,
     alpha=-np.inf,
     beta=np.inf,
     eval_function=get_simple_board_evaluation,
-    policy_function=None,
-    positions=0,
-):
-    # depth 1 - 21 positions - time 0.004315
-    # depth 2 - 76 positions - time 0.033392
-    # depth 3 - 687 positions - time 0.172937
-    # depth 4 - 4007 positions - time 1.278452
-    # depth 5 - 30086 positions - time 7.623218
-    # depth 6 - 82579 positions - time 60.89466
-    positions += 1
-    if depth == 0 or board.is_game_over():
-        # this might have problems with depth == 1, should probably return  board.pop() (MAYBE)
-        eval = eval_function(board)
-        return eval, None, positions
-    sorted_list = get_sorted_move_list(board, agent=policy_function)
-    if is_player:
-        max_eval = -np.inf
-        best_move = None
-        for move in sorted_list:
-            board.push(move)
-            eval, a, positions = minimax_with_pruning_and_policyeval(
-                board,
-                depth - 1,
-                False,
-                alpha,
-                beta,
-                eval_function,
-                policy_function,
-                positions=positions,
-            )
-            if eval >= max_eval:
-                max_eval = eval
-                best_move = move
-            board.pop()
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
-        return max_eval, best_move, positions
-    else:
-        min_eval = np.inf
-        best_move = None
-        for move in sorted_list:
-            board.push(move)
-            eval, a, positions = minimax_with_pruning_and_policyeval(
-                board,
-                depth - 1,
-                True,
-                alpha,
-                beta,
-                eval_function,
-                policy_function,
-                positions=positions,
-            )
-            if eval <= min_eval:
-                min_eval = eval
-                best_move = move
-            board.pop()
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
-        return min_eval, best_move, positions
-
-
-def minimax_with_pruning_policyeval_positionredundancy(
-    board: ch.Board,
-    depth: int,
-    is_player: bool,
-    alpha=-np.inf,
-    beta=np.inf,
-    eval_function=get_simple_board_evaluation,
-    policy_function=None,
+    policy_function=get_sorted_move_list,
     positions=0,
     positions_analysed={},
 ):
@@ -200,11 +132,11 @@ def minimax_with_pruning_policyeval_positionredundancy(
             eval = eval_function(board)
             positions_analysed[board.board_fen() + str(depth)] = eval
         return eval, None, positions, positions_analysed
-    sorted_list = get_sorted_move_list(board, agent=policy_function)
+    move_list = policy_function(board)
     if is_player:
         max_eval = -np.inf
         best_move = None
-        for move in sorted_list:
+        for move in move_list:
             board.push(move)
             try:
                 eval = positions_analysed[board.board_fen() + str(depth)]
@@ -214,7 +146,7 @@ def minimax_with_pruning_policyeval_positionredundancy(
                     a,
                     positions,
                     positions_analysed,
-                ) = minimax_with_pruning_policyeval_positionredundancy(
+                ) = minimax_with_pruning_positionredundancy(
                     board,
                     depth - 1,
                     False,
@@ -237,7 +169,7 @@ def minimax_with_pruning_policyeval_positionredundancy(
     else:
         min_eval = np.inf
         best_move = None
-        for move in sorted_list:
+        for move in move_list:
             board.push(move)
             try:
                 eval = positions_analysed[board.board_fen() + str(depth)]
@@ -247,7 +179,7 @@ def minimax_with_pruning_policyeval_positionredundancy(
                     a,
                     positions,
                     positions_analysed,
-                ) = minimax_with_pruning_policyeval_positionredundancy(
+                ) = minimax_with_pruning_positionredundancy(
                     board,
                     depth - 1,
                     True,

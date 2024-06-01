@@ -4,19 +4,26 @@ from pychessai.agents import Agent
 from pychessai.move_choice.minimax import (
     minimax,
     minimax_with_pruning,
-    minimax_with_pruning_and_policyeval,
-    minimax_with_pruning_policyeval_positionredundancy,
+    minimax_with_pruning_positionredundancy,
 )
+from pychessai.move_choice.utils import legal_moves
 from pychessai.utils.eval import get_simple_board_evaluation
+from pychessai.utils.policy import get_sorted_move_list
 
 
 class MinimaxAgent(Agent):
     def __init__(
-        self, depth=3, board=ch.Board(), is_white=True, search_function=minimax
+        self,
+        depth=3,
+        board=ch.Board(),
+        is_white=True,
+        search_function=minimax,
+        policy_function=legal_moves,
     ):
         super().__init__(depth, board, is_white)
         self.positions = 0
         self.search_function = search_function
+        self.policy_function = policy_function
 
     def choose_move(self, board):
         self.board = board
@@ -38,30 +45,21 @@ class MinimaxPruningAgent(MinimaxAgent):
         board=ch.Board(),
         is_white=True,
         search_function=minimax_with_pruning,
+        policy_function=legal_moves,
     ):
-        super().__init__(depth, board, is_white, search_function)
+        super().__init__(depth, board, is_white, search_function, policy_function)
 
 
-class MinimaxPruningWithPolicyAgent(MinimaxAgent):
+class MinimaxPruningPositionRedundancyAgent(MinimaxAgent):
     def __init__(
         self,
         depth=3,
         board=ch.Board(),
         is_white=True,
-        search_function=minimax_with_pruning_and_policyeval,
+        search_function=minimax_with_pruning_positionredundancy,
+        policy_function=get_sorted_move_list,
     ):
-        super().__init__(depth, board, is_white, search_function)
-
-
-class MinimaxPruningWithPolicyPositionRedundancyAgent(MinimaxAgent):
-    def __init__(
-        self,
-        depth=3,
-        board=ch.Board(),
-        is_white=True,
-        search_function=minimax_with_pruning_policyeval_positionredundancy,
-    ):
-        super().__init__(depth, board, is_white, search_function)
+        super().__init__(depth, board, is_white, search_function, policy_function)
         self.positions_analysed = {}
 
     def choose_move(self, board):

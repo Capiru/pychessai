@@ -3,8 +3,7 @@ import chess as ch
 from pychessai.agents import (
     MinimaxAgent,
     MinimaxPruningAgent,
-    MinimaxPruningWithPolicyAgent,
-    MinimaxPruningWithPolicyPositionRedundancyAgent,
+    MinimaxPruningPositionRedundancyAgent,
     RandomAgent,
 )
 
@@ -26,14 +25,8 @@ def test_minimax_pruning_agent(board_checkmate_in_1):
     assert move[0] == ch.Move.from_uci("h5f7")
 
 
-def test_minimax_pruning_with_policy_agent(board_checkmate_in_1):
-    minimax_pruning = MinimaxPruningWithPolicyAgent()
-    move = minimax_pruning.choose_move(board_checkmate_in_1)
-    assert move[0] == ch.Move.from_uci("h5f7")
-
-
 def test_minimax_pruning_policy_position_redundancy_agent(board_checkmate_in_1):
-    minimax_pruning = MinimaxPruningWithPolicyPositionRedundancyAgent()
+    minimax_pruning = MinimaxPruningPositionRedundancyAgent()
     move = minimax_pruning.choose_move(board_checkmate_in_1)
     assert move[0] == ch.Move.from_uci("h5f7")
 
