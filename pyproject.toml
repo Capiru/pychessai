@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pychessai"
+version = "0.1.0"
+description = ""
+authors = ["Capiru <gabriel.silva.2@deliveryhero.com>"]
+readme = "README.md"
+packages = [{include = "legacy"}]
+
+[tool.poetry.dependencies]
+python = "3.11.9"
+chess = "^1.10.0"
+torch = "^2.3.0"
+numpy = "^1.26.4"
+matplotlib = "^3.9.0"
+pandas = "^2.2.2"
+tqdm = "^4.66.4"
+ray = {extras = ["default","rllib"], version = "^2.23.0"}
+CairoSVG = "^2.7.1"
+scikit-learn = "^1.5.0"
+pettingzoo = "^1.24.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
