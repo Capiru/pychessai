@@ -57,9 +57,5 @@ class TrainableAgent(Agent):
         self.model_parameters = model_parameters
 
     @abstractmethod
-    def setup_model(self) -> None:
-        raise Exception("You should implement a setup_model method")
-
-    @abstractmethod
     def get_model_name(self) -> str:
         raise Exception("You should implement a get_model_name method")

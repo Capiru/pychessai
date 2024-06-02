@@ -11,7 +11,12 @@ class Model(ABC):
         model_parameters: dict,
     ):
         super().__init__()
+        self.nn = nn
         self.model_parameters = model_parameters
+
+    @abstractmethod
+    def setup_model(self) -> None:
+        raise Exception("You should implement a setup_model method")
 
     @abstractmethod
     def predict(self, board) -> Any:

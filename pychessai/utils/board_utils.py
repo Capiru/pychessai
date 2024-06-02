@@ -1,8 +1,13 @@
+import math
+
 import cairosvg
 import chess as ch
 import chess.svg as svg
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+import torch
+
+from pychessai.utils import get_device
 
 
 def get_players_piece_maps(board: ch.Board):
@@ -145,3 +150,97 @@ def show_board(board, eval_white, eval_black, fig=None):
     plt.pause(0.01)
     txt.set_visible(False)
     return fig
+
+
+def get_fen_as_tensor(fen):
+    pytorch = True
+    num_pieces = 6
+    num_players = 2
+    board_size = 8
+    real_planes = 7  # 4 castling 1 black or white
+    # attacking_planes = 1
+    total_num_planes = num_pieces * num_players + real_planes
+    if pytorch:
+        input_tensor_size = (total_num_planes, board_size, board_size)
+    else:
+        input_tensor_size = (board_size, board_size, total_num_planes)
+    tensor = torch.zeros(input_tensor_size)
+    dic_encoder = {
+        "p": 0,
+        "P": 1,
+        "r": 2,
+        "R": 3,
+        "n": 4,
+        "N": 5,
+        "b": 6,
+        "B": 7,
+        "q": 8,
+        "Q": 9,
+        "k": 10,
+        "K": 11,
+    }
+    fen_position = fen.split(" ")[0]
+    # fen_row_positions = fen_position.split("/")
+    row = 0
+    file_ = 0
+    for char in fen_position:
+        if char == "/":
+            row += 1
+            file_ = 0
+        elif str.isnumeric(char):
+            file_ += int(char)
+        else:
+            if pytorch:
+                tensor[dic_encoder[char], row, file_] = 1
+            else:
+                tensor[row, file_, dic_encoder[char]] = 1
+            file_ += 1
+    return tensor.to(get_device())
+
+
+def get_board_as_tensor(board):
+    player_white = board.turn == ch.WHITE
+    num_pieces = 6
+    num_players = 2
+    board_size = 8
+    real_planes = 7  # 4 castling 1 black or white
+    # attacking_planes = 1
+    total_num_planes = num_pieces * num_players + real_planes
+
+    pytorch = True
+    if pytorch:
+        input_tensor_size = (total_num_planes, board_size, board_size)
+    else:
+        input_tensor_size = (board_size, board_size, total_num_planes)
+    tensor = torch.zeros(input_tensor_size)
+
+    if board.turn == ch.WHITE ^ player_white:
+        # opponent's turn
+        tensor[12, :, :] = 1
+    pieces = [ch.PAWN, ch.KNIGHT, ch.BISHOP, ch.ROOK, ch.QUEEN, ch.KING]
+    if player_white:
+        colors = [ch.WHITE, ch.BLACK]
+        starting_plane = 7
+    else:
+        colors = [ch.BLACK, ch.WHITE]
+        starting_plane = 0
+    num_before_draw = math.floor(board.halfmove_clock / 2)
+    if num_before_draw >= 64:
+        tensor[17, 7, 7] = 1
+    tensor[17, num_before_draw % 8, ((num_before_draw) // 8) % 8] = 1
+    plane = -1
+    player_color = 0
+    for color in colors:
+        if board.has_kingside_castling_rights(color):
+            tensor[13 + player_color * 2, :, :] = 1
+        if board.has_queenside_castling_rights(color):
+            tensor[14 + player_color * 2, :, :] = 1
+        player_color += 1
+        for piece in pieces:
+            plane += 1
+            piece_map = board.pieces(piece, color)
+            for pos in piece_map:
+                tensor[plane, abs(starting_plane - pos // 8), pos % 8] = 1
+    assert plane == int(len(pieces) * 2 - 1)
+
+    return tensor.to(get_device())
