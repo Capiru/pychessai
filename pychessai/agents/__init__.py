@@ -1,4 +1,4 @@
-from pychessai.agents.agents import Agent
+from pychessai.agents.agents import Agent, TrainableAgent
 from pychessai.agents.minimax_agents import (
     MinimaxAgent,
     MinimaxPruningAgent,
@@ -12,4 +12,5 @@ __all__ = [
     "MinimaxAgent",
     "MinimaxPruningAgent",
     "MinimaxPruningPositionRedundancyAgent",
+    "TrainableAgent",
 ]
