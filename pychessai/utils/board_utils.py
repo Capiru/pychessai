@@ -1,4 +1,11 @@
-def get_players_piece_maps(board):
+import cairosvg
+import chess as ch
+import chess.svg as svg
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+
+
+def get_players_piece_maps(board: ch.Board):
     # Execution time: 0.000391
     pieces = board.piece_map()
     white_map = dict()
@@ -112,3 +119,29 @@ def build_diag_maps():
         30: "H1G2F3E4D5C6B7A8",
     }
     return diagonal_maps, diag_num_maps
+
+
+def show_board(board, eval_white, eval_black, fig=None):
+    if fig is None:
+        fig = plt.figure(figsize=(5, 5))
+        plt.ion()
+        plt.show()
+    svg_img = svg.board(board=board)
+    f = open("tmp/board.svg", "w")
+    f.write(svg_img)
+    f.close()
+    cairosvg.svg2png(url="tmp/board.svg", write_to="tmp/image.png")
+    img = mpimg.imread("tmp/image.png")
+    props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)
+    txt = plt.text(
+        0.05,
+        0.95,
+        f"White: {eval_white:.3f}\nBlack: {eval_black:.3f}",
+        fontsize=14,
+        verticalalignment="top",
+        bbox=props,
+    )
+    plt.imshow(img)
+    plt.pause(0.01)
+    txt.set_visible(False)
+    return fig
