@@ -7,6 +7,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import torch
 
+from pychessai.constants import ChessBoard, ChessRewards
 from pychessai.utils import get_device
 
 
@@ -200,22 +201,17 @@ def get_fen_as_tensor(fen):
 
 def get_board_as_tensor(board):
     player_white = board.turn == ch.WHITE
-    num_pieces = 6
-    num_players = 2
-    board_size = 8
-    real_planes = 7  # 4 castling 1 black or white
-    # attacking_planes = 1
+    num_pieces = ChessBoard.NUM_PIECES
+    num_players = ChessBoard.NUM_PLAYERS
+    board_size = ChessBoard.BOARD_SIZE
+    real_planes = ChessBoard.REAL_PLANES
     total_num_planes = num_pieces * num_players + real_planes
 
-    pytorch = True
-    if pytorch:
-        input_tensor_size = (total_num_planes, board_size, board_size)
-    else:
-        input_tensor_size = (board_size, board_size, total_num_planes)
+    input_tensor_size = (total_num_planes, board_size, board_size)
     tensor = torch.zeros(input_tensor_size)
 
     if board.turn == ch.WHITE ^ player_white:
-        # opponent's turn
+        # If it's opponent's turn
         tensor[12, :, :] = 1
     pieces = [ch.PAWN, ch.KNIGHT, ch.BISHOP, ch.ROOK, ch.QUEEN, ch.KING]
     if player_white:
@@ -244,3 +240,19 @@ def get_board_as_tensor(board):
     assert plane == int(len(pieces) * 2 - 1)
 
     return tensor.to(get_device())
+
+
+def decaying_function_cosdecay(match_len, current_move):
+    return math.sin(math.pi * (current_move / match_len) ** 3 - math.pi / 2) / 2 + 0.5
+
+
+def get_reward_value(winner, player_white, decay=False, current_move=0, match_len=0):
+    if winner is None:
+        reward = ChessRewards.DRAW
+    elif not (winner ^ (player_white)):
+        reward = ChessRewards.WIN
+    else:
+        reward = ChessRewards.LOSE
+    if decay:
+        reward *= decaying_function_cosdecay(match_len, current_move)
+    return reward
