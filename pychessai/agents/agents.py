@@ -42,6 +42,9 @@ class Agent(ABC):
         raise Exception("You should implement a get_board_evaluation method")
 
 
+DEFAULT_TRAINING_PARAMETERS = {"batch_size": 8, "shuffle_data": False, "num_workers": 1}
+
+
 class TrainableAgent(Agent):
     def __init__(
         self,
